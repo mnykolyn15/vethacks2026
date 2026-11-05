@@ -1,6 +1,6 @@
 import { h } from "../dom.js";
 import { parseJst, parseResume } from "../jst.js";
-import { mosDuties, mosTitles } from "../translate.js";
+import { mosDuties, mosTitles, translate } from "../translate.js";
 import { state } from "../state.js";
 
 const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
@@ -57,6 +57,11 @@ function fileText(file) {
   return imageText(file);
 }
 
+// Tap-to-start phrases for the job details box. Each one is recognized as a civilian skill once it's finished.
+const DUTY_STARTERS = ["Repaired", "Inspected", "Led a team of", "Trained and mentored", "Tracked inventory of", "Kept records of", "Enforced safety for", "Planned"];
+// A starter nobody finished says nothing about the person, so it doesn't count.
+const dutyLines = (text) => text.split("\n").map((l) => l.trim()).filter((l) => l && !DUTY_STARTERS.includes(l));
+
 const parseResumeText = (text) => parseResume(text, Object.keys(mosDuties));
 
 export function intakeView(ctx) {
@@ -69,13 +74,34 @@ export function intakeView(ctx) {
     const form = h("form", { class: "confirm" });
     const jobBoxes = [];
     const addJob = (j) => {
+      const dutiesId = `duties-${jobBoxes.length}`;
+      const found = h("p", { class: "duty-found", role: "status" });
+      const showFound = () => {
+        const skills = translate({ jobs: [{ code: "", title: "", duties: dutyLines(duties.value) }], courses: [] });
+        found.textContent = skills.length ? `Skills we see so far: ${skills.map((s) => s.label).join(", ")}` : "";
+      };
+      const duties = h("textarea", { name: "duties", id: dutiesId, rows: 5, oninput: showFound,
+        placeholder: "Repaired diesel generators\nLed a team of 4\nTracked $400K in tools and equipment" }, j.duties.join("\n"));
+      const startLine = (text) => {
+        const current = duties.value.replace(/\s+$/, "");
+        duties.value = `${current ? `${current}\n` : ""}${text} `;
+        duties.focus();
+        duties.setSelectionRange(duties.value.length, duties.value.length);
+        showFound();
+      };
+      showFound();
       const box = h("fieldset", { class: "job" },
         h("legend", {}, "Job held"),
         h("label", {}, "MOS / code", h("input", { name: "code", value: j.code })),
         h("label", {}, "Title", h("input", { name: "title", value: j.title })),
         h("label", {}, "Start", h("input", { name: "start", value: j.start })),
         h("label", {}, "End", h("input", { name: "end", value: j.end })),
-        h("label", {}, "Duties (one per line). If you leave this blank, we use duties typical for the MOS and label them that way.", h("textarea", { name: "duties", rows: 5 }, j.duties.join("\n"))));
+        h("label", { for: dutiesId }, "What did you do in this job?"),
+        h("p", { class: "duty-hint" }, "List the specific things you worked on, led, or kept track of, one per line. Short notes are fine, like \u201cdiesel generators\u201d or \u201cteam of 4.\u201d We'll turn them into civilian skills."),
+        h("div", { class: "chips", role: "group", "aria-label": "Tap a phrase to start a line" }, DUTY_STARTERS.map((s) => h("button", { type: "button", class: "chip", onclick: () => startLine(s) }, s))),
+        duties,
+        found,
+        h("p", { class: "duty-hint" }, "Not sure what to write? Leave this blank, and we'll start with tasks typical for your MOS when we have them."));
       jobBoxes.push(box);
       form.insertBefore(box, extras);
     };
@@ -94,7 +120,7 @@ export function intakeView(ctx) {
       const val = (box, n) => box.querySelector(`[name=${n}]`).value.trim();
       const lines = (n) => form.querySelector(`[name=${n}]`).value.split("\n").map((l) => l.trim()).filter(Boolean);
       state.jst = {
-        jobs: jobBoxes.map((b) => ({ code: val(b, "code"), title: val(b, "title"), start: val(b, "start"), end: val(b, "end"), duties: val(b, "duties").split("\n").map((l) => l.trim()).filter(Boolean) })),
+        jobs: jobBoxes.map((b) => ({ code: val(b, "code"), title: val(b, "title"), start: val(b, "start"), end: val(b, "end"), duties: dutyLines(val(b, "duties")) })),
         courses: lines("courses").map((l) => { const m = l.match(/^(.*?)\s*\(([^)]*)\)\s*$/); return m ? { name: m[1], credits: m[2] } : { name: l, credits: "" }; }),
         certs: lines("certs")
       };
@@ -146,8 +172,8 @@ export function intakeView(ctx) {
       if (!code) return say("Enter your MOS code first.");
       show({ jobs: [{ code, title: mosTitles[code] || "", start: "", end: "", duties: [] }], courses: [], certs: [], skills: [] });
       say(mosDuties[code]
-        ? `Found ${code}. We'll start from duties typical for this MOS. Add your own below for stronger resume lines.`
-        : `We don't have typical duties for ${code} yet, so add your duties below. Your skills come from what you enter.`);
+        ? `Found ${code}. We can start from tasks typical for this MOS. Add what you did below for stronger resume lines.`
+        : `We don't have typical tasks for ${code} yet, so add what you did below. Your skills come from what you enter.`);
     } },
       h("label", { for: "mos-code" }, "Your MOS code"), input, list,
       h("button", { type: "submit" }, "Use this MOS"));

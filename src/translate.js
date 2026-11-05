@@ -11,7 +11,7 @@ export const skillLabels = {
 
 // Duty text -> civilian skill. `phrase(n)` opens the resume line; `n` is a number found in the duty (e.g. "Led 4 repairers").
 const rules = [
-  { tag: "supervision", re: /\bled\b|supervis|team lead|squad|section|\bnco\b|managed (?:a )?team/i, phrase: (n) => n ? `Supervised a team of ${n}` : "Supervised a team" },
+  { tag: "supervision", re: /\bled\b|supervis|team lead|team of|crew of|squad|section|\bnco\b|managed (?:a )?team/i, phrase: (n) => n ? `Supervised a team of ${n}` : "Supervised a team" },
   { tag: "diagnostics", re: /troubleshoo?t|diagnos|fault|isolat(?:ed|ing) (?:failures|problems)/i, phrase: () => "Diagnosed and resolved equipment faults" },
   { tag: "mechanical", re: /generator|engine|mechanic|repair|overhaul|hydraulic|power plant/i, phrase: () => "Repaired and maintained mechanical equipment" },
   { tag: "electrical", re: /electri|wir(?:ed|ing)|circuit|voltage|power distribution/i, phrase: () => "Installed and tested electrical systems" },
@@ -69,6 +69,15 @@ export function tagsForSkill(text) {
 const clean = (s) => s.replace(/^[•\-*·▪◦\s]+/, "").replace(/[.;\s]+$/, "");
 const number = (s) => (s.match(/\b(\d{1,4})\b/) || [])[1];
 
+const words = (s) => s.toLowerCase().match(/[\w$+]+/g) || [];
+
+// Skip the "(evidence)" part when it only repeats the phrase, as in "Supervised a team of 4 (led a team of 4)."
+function resumeLine(phrase, evidence) {
+  const inPhrase = new Set(words(phrase));
+  const repeats = words(evidence).slice(1).every((w) => inPhrase.has(w));
+  return repeats ? `${phrase}.` : `${phrase} (${evidence.charAt(0).toLowerCase()}${evidence.slice(1)}).`;
+}
+
 // Turn a confirmed JST record into civilian skills with evidence + a copy-ready resume line each.
 export function translate(jst) {
   const sources = [];
@@ -86,7 +95,7 @@ export function translate(jst) {
       const evidence = clean(src.text);
       found.set(rule.tag, {
         tag: rule.tag, label: skillLabels[rule.tag], evidence, from: src.from, inferred: src.inferred,
-        line: `${rule.phrase(number(src.text))} (${evidence.charAt(0).toLowerCase()}${evidence.slice(1)}).`
+        line: resumeLine(rule.phrase(number(src.text)), evidence)
       });
     }
   }
