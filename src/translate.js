@@ -12,7 +12,7 @@ export const skillLabels = {
 // Duty text -> civilian skill. `phrase(n)` opens the resume line; `n` is a number found in the duty (e.g. "Led 4 repairers").
 const rules = [
   { tag: "supervision", re: /\bled\b|supervis|team lead|squad|section|\bnco\b|managed (?:a )?team/i, phrase: (n) => n ? `Supervised a team of ${n}` : "Supervised a team" },
-  { tag: "diagnostics", re: /troubleshoot|diagnos|fault|isolat(?:ed|ing) (?:failures|problems)/i, phrase: () => "Diagnosed and resolved equipment faults" },
+  { tag: "diagnostics", re: /troubleshoo?t|diagnos|fault|isolat(?:ed|ing) (?:failures|problems)/i, phrase: () => "Diagnosed and resolved equipment faults" },
   { tag: "mechanical", re: /generator|engine|mechanic|repair|overhaul|hydraulic|power plant/i, phrase: () => "Repaired and maintained mechanical equipment" },
   { tag: "electrical", re: /electri|wir(?:ed|ing)|circuit|voltage|power distribution/i, phrase: () => "Installed and tested electrical systems" },
   { tag: "maintenance", re: /preventive|pmcs|scheduled maintenance|inspect/i, phrase: (n) => n ? `Performed scheduled preventive maintenance on ${n}+ units` : "Performed scheduled preventive maintenance" },
@@ -44,6 +44,27 @@ export const mosDuties = {
   "42A": ["Managed personnel records and actions", "Advised staff on benefits and entitlements"]
 };
 
+export const mosTitles = {
+  "52D": "Power Generation Equipment Repairer", "11B": "Infantryman", "68W": "Combat Medic Specialist",
+  "25B": "Information Technology Specialist", "92Y": "Unit Supply Specialist", "88M": "Motor Transport Operator",
+  "35F": "Intelligence Analyst", "12B": "Combat Engineer", "31B": "Military Police", "42A": "Human Resources Specialist"
+};
+
+// Everyday words people use when adding a skill themselves, beyond the record-oriented rules above.
+const addedSkillRules = [
+  [/leader|manag|foreman/i, "supervision"], [/customer|sales|client/i, "customer"], [/excel|spreadsheet|sql|tableau/i, "analysis"],
+  [/hvac|plumb|carpent|machin/i, "mechanical"], [/python|software|program|tech support|comput/i, "it"],
+  [/teach|coach|onboard/i, "training"], [/budget|planning|scheduling/i, "projectmgmt"], [/shipping|warehouse|logistic/i, "logistics"],
+  [/electric/i, "electrical"], [/cpr|nurs|emt/i, "patientcare"]
+];
+
+// Skill tags a user-added skill counts toward. Empty means it shows on the resume but can't change matches.
+export function tagsForSkill(text) {
+  const tags = [...rules.filter((r) => r.re.test(text)).map((r) => r.tag),
+    ...addedSkillRules.filter(([re]) => re.test(text)).map(([, t]) => t)];
+  return [...new Set(tags)];
+}
+
 const clean = (s) => s.replace(/^[•\-*·▪◦\s]+/, "").replace(/[.;\s]+$/, "");
 const number = (s) => (s.match(/\b(\d{1,4})\b/) || [])[1];
 
@@ -71,7 +92,7 @@ export function translate(jst) {
   return [...found.values()];
 }
 
-export function heldCredentials(jst) {
-  const text = [...jst.certs, ...jst.courses.map((c) => c.name)].join("\n");
+export function heldCredentials(jst, extraSkills = []) {
+  const text = [...jst.certs, ...jst.courses.map((c) => c.name), ...extraSkills].join("\n");
   return Object.keys(credentialKeywords).filter((id) => credentialKeywords[id].test(text));
 }
