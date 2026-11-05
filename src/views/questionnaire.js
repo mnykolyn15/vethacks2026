@@ -1,7 +1,8 @@
 import { h } from "../dom.js";
 import { state } from "../state.js";
 import { freeTextSignals } from "../matching.js";
-import { field, pills, importance, nextId } from "../ui.js";
+import { field, pills, importance, combobox, nextId } from "../ui.js";
+import { loadZips, searchZips, findZip } from "../data/zipSearch.js";
 import { STABILITY_NAVIGATOR_URL } from "../data/links.js";
 
 const workTypes = [
@@ -45,6 +46,7 @@ const hours = [
 export function questionnaireView(ctx) {
   const a = state.answers;
   a.importance ||= {};
+  loadZips(); // fetch the ZIP list now so the dropdown is instant
   let page = 0;
   const root = h("section", { class: "questions" });
 
@@ -85,7 +87,22 @@ export function questionnaireView(ctx) {
           .map(([v, l]) => h("option", { value: v, selected: Number(a.commuteFlex) === v }, l)));
       const relocate = h("select", { id: nextId("reloc"), onchange: (e) => (a.relocate = e.target.value) },
         [["no", "No"], ["maybe", "Maybe"], ["yes", "Yes"]].map(([v, l]) => h("option", { value: v, selected: a.relocate === v }, l)));
+      const zipInfo = h("p", { class: "found", role: "status" });
+      const showZip = () => {
+        zipInfo.textContent = a.zipPlace ? `✓ ${a.zip} · ${a.zipPlace}` : /^\d{5}$/.test(a.zip) ? `We don't have ZIP ${a.zip} in our list yet. We cover New Jersey for now.` : "";
+      };
+      const zipBox = combobox({ id: nextId("zip"), value: a.zip, label: "ZIP code", placeholder: "Type your ZIP code or town, then pick from the list",
+        search: searchZips, onpick: (e) => { Object.assign(a, { zip: e.code, zipPlace: e.title, lat: e.lat, lng: e.lng }); showZip(); } });
+      zipBox.input.addEventListener("input", () => {
+        const v = zipBox.input.value.trim();
+        const hit = /^\d{5}$/.test(v) ? findZip(v) : null;
+        Object.assign(a, { zip: /^\d{5}$/.test(v) ? v : "", zipPlace: hit ? hit.title : "", lat: hit ? hit.lat : null, lng: hit ? hit.lng : null });
+        showZip();
+      });
+      showZip();
       return [
+        h("div", { class: "question" }, field("Where do you live?", h("div", {}, zipBox.el, zipInfo, h("p", { class: "hint source-note" }, "ZIP list: GeoNames (geonames.org), CC BY 4.0. New Jersey for now.")),
+          "Type your ZIP code or your town, then pick from the list. We use it to find help near you.")),
         question("What hours can you work?", choose("hours", hours), "hours",
           "Pick everything that's OK. If you only pick Daytime only, we won't show jobs with nights or rotating shifts."),
         question("How far will you commute?", h("div", {}, miles,
@@ -105,13 +122,40 @@ export function questionnaireView(ctx) {
         err.textContent = ok ? "" : "Please fill in both amounts. If you're not sure, give your best guess. You can change it later.";
         return ok;
       };
+      // Typing one amount fills in the other (full-time is about 2,080 hours a year), so people can see both.
+      // A value we filled in is replaced as they keep typing; one they typed themselves is left alone.
+      const HOURS = 2080;
+      const dollars = (n) => `$${Math.round(n).toLocaleString()}`;
+      const hr = h("input", { id: nextId("hourly"), type: "number", min: 0, step: "0.5", inputmode: "decimal", value: a.minHourly, placeholder: "For example, 25" });
+      const sal = h("input", { id: nextId("salary"), type: "number", min: 0, step: "1000", inputmode: "decimal", value: a.minSalary, placeholder: "For example, 52000" });
+      const hrNote = h("p", { class: "convert", role: "status" });
+      const salNote = h("p", { class: "convert", role: "status" });
+      let autoHr = false;
+      let autoSal = false;
+      const notes = () => {
+        hrNote.textContent = Number(a.minHourly) > 0 ? `That's about ${dollars(a.minHourly * HOURS)} a year, full-time.` : "";
+        salNote.textContent = Number(a.minSalary) > 0 ? `That's about $${(a.minSalary / HOURS).toFixed(2)} an hour, full-time.` : "";
+      };
+      hr.addEventListener("input", () => {
+        autoHr = false;
+        a.minHourly = hr.value === "" ? "" : Number(hr.value);
+        if (a.minHourly !== "" && (sal.value === "" || autoSal)) { a.minSalary = Math.round(a.minHourly * HOURS); sal.value = a.minSalary; autoSal = true; }
+        else if (a.minHourly === "" && autoSal) { a.minSalary = ""; sal.value = ""; autoSal = false; }
+        notes();
+      });
+      sal.addEventListener("input", () => {
+        autoSal = false;
+        a.minSalary = sal.value === "" ? "" : Number(sal.value);
+        if (a.minSalary !== "" && (hr.value === "" || autoHr)) { a.minHourly = Math.round((a.minSalary / HOURS) * 100) / 100; hr.value = a.minHourly; autoHr = true; }
+        else if (a.minSalary === "" && autoHr) { a.minHourly = ""; hr.value = ""; autoHr = false; }
+        notes();
+      });
+      notes();
       return [
         question("What's the least you'd accept?", h("div", {},
-          field("Hourly ($ per hour)", num("minHourly", { step: "0.5", placeholder: "For example, 25" })),
-          field("Salary ($ per year)", num("minSalary", { step: "1000", placeholder: "For example, 52000" })), err),
-          "pay", "Some jobs pay by the hour and others pay a yearly salary. Fill in both so we can compare any job fairly. For example, $25 an hour or $52,000 a year."),
-        question("Do you want paid training or an apprenticeship?", choose("wantsPaidTraining", [["yes", "Yes"], ["no", "No preference"]], {
-          single: true, selected: [a.wantsPaidTraining ? "yes" : "no"], after: (v) => (a.wantsPaidTraining = v[0] === "yes") }), "training"),
+          field("Hourly ($ per hour)", h("div", {}, hr, hrNote), null, { forId: hr.id }),
+          field("Salary ($ per year)", h("div", {}, sal, salNote), null, { forId: sal.id }), err),
+          "pay", "Some jobs pay by the hour and others pay a yearly salary. Type one and we fill in the other, based on a full-time year (2,080 hours). Change either one if your numbers differ. For example, $25 an hour or $52,000 a year."),
         question("Willing to take classes?", h("div", {}, choose("education", [["none", "No classes"], ["short", "Short courses (up to about 3 months)"], ["long", "Longer programs"], ["any", "No preference"]],
           { single: true, selected: [a.education], after: (v) => (a.education = v[0] || "short") }),
           field("Hours per week you could study", num("hoursPerWeek"))), "education")];

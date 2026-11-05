@@ -132,11 +132,6 @@ export function scoreRole(role, profile, today = new Date()) {
       score: !need || payOk ? 1 : hi >= need ? 0.6 : 0.2,
       detail: `${money(role.pay.lo)}–${money(role.pay.hi)}/yr (${salaried ? "salaried" : `about $${(role.pay.lo / 2080).toFixed(0)}–$${(role.pay.hi / 2080).toFixed(0)}/hr`}); your minimum is ${need ? fmt(need) : "not set"}${need ? unit : ""}` }
   ];
-  if (q.wantsPaidTraining) {
-    const ok = missing.length === 0 || role.paidTraining;
-    checks.push({ key: "training", label: "Paid training", pass: ok, weight: weightOf(q, "training"), strong: q.importance?.training === "strong", score: ok ? 1 : 0.3,
-      detail: ok ? (missing.length ? "Employers or apprenticeships pay while you train" : "No training needed to start") : "You would pay for training yourself" });
-  }
   const eduOk = maxWeeks <= eduLimit;
   checks.push({ key: "education", label: "Classes", pass: eduOk, weight: weightOf(q, "education"), strong: q.importance?.education === "strong", score: eduOk ? 1 : 0.4,
     detail: missing.length ? `Longest credential takes ~${maxWeeks} weeks (you are open to ${eduName})` : "No classes needed" });
@@ -195,9 +190,15 @@ export function scoreRole(role, profile, today = new Date()) {
 }
 
 // Roles grouped by how soon they could pay off (Opportunity Map rings), best fit first.
-export function rankHorizons(profile, today = new Date()) {
+// Apprenticeship roles are paid, structured training that can take years. People choose, on the results,
+// whether to see everything ("all"), only those roles ("only"), or none of them ("none").
+export const requiresApprenticeship = (role) => role.requires.some((c) => c.endsWith("_apprenticeship"));
+const allowed = (role, pref) => pref === "only" ? requiresApprenticeship(role) : pref === "none" ? !requiresApprenticeship(role) : true;
+
+export function rankHorizons(profile, today = new Date(), { apprenticeship = "all" } = {}) {
   const out = { earn: [], train: [], big: [] };
   for (const r of careers) {
+    if (!allowed(r, apprenticeship)) continue;
     const s = scoreRole(r, profile, today);
     if (s.ring) out[s.horizon].push(s);
   }
@@ -227,8 +228,8 @@ export function buildPath(dreamId, profile, firstJobId = null, today = new Date(
   return { dream, first, direct, onTheJob, toTrain, credentials: dream.missing };
 }
 
-export function rankRoles(profile, today = new Date()) {
-  const scored = careers.map((r) => scoreRole(r, profile, today)).filter((s) => s.ring);
+export function rankRoles(profile, today = new Date(), { apprenticeship = "all" } = {}) {
+  const scored = careers.filter((r) => allowed(r, apprenticeship)).map((r) => scoreRole(r, profile, today)).filter((s) => s.ring);
   const rings = { strong: [], stretch: [], reach: [] };
   for (const s of scored) rings[s.ring].push(s);
   for (const k of ORDER) rings[k] = rings[k].sort((a, b) => b.total - a.total).slice(0, MAX_PER_RING);

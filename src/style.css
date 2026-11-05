@@ -274,3 +274,10 @@ button.help[aria-expanded=true] { background: var(--navy); color: #fff; }
 .pick small { display: block; color: #555; }
 .pick-empty { color: #555; }
 .goal-more { margin: 1rem 0; } .goal-more summary { cursor: pointer; color: var(--navy); }
+
+/* Hourly <-> salary conversion, ZIP lookup, apprenticeship layer */
+.convert { margin: .3rem 0 0; color: #1d5c32; font-weight: 600; font-size: .92rem; min-height: 1.2em; }
+.layer { background: #fff; border: 1px solid #d8dce6; border-radius: 12px; padding: .25rem 1rem 1rem; margin: 1rem 0; }
+.layer h3 { margin: .6rem 0 .1rem; }
+.tag-appr { background: #fbeed6; color: #7a4800; }
+.appr-note { color: #7a4800 !important; font-weight: 600; }

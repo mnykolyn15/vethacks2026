@@ -36,6 +36,7 @@ function loadJordan() {
   state.uncheckedSkills = [];
   state.dream = null; // Jordan chooses on the goal step
   state.dreamTheme = null;
+  state.apprenticeship = "all";
   state.firstJob = null;
   state.dreamNote = "";
   state.compare = [];

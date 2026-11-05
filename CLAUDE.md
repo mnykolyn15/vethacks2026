@@ -2,7 +2,7 @@
 
 Static web app for the Veteran's Day hackathon ("veteran's build"). Flow, built around the made-up demo veteran Jordan Lee (Army generator repairer, MOS 91D, single parent, made-up Riverbend County NJ, $25/hr minimum):
 
-1. Share a background: resume, JST, and/or a code (MOS, AFSC, or rate) on one page. Whatever is given is merged into one confirm form (job, pay grade, billets, tasks, courses, certifications)
+1. Share a background: resume, JST, and/or a code (MOS, AFSC, or Rate) on one page. Whatever is given is merged into one confirm form (job, pay grade, billets, tasks, courses, certifications)
 2. Paged questionnaire (6 short pages). Each question has a Low/Medium/Strong "how much does this matter" control that weights the ranking
 3. Skills translation: each card shows the military skill (what the person did), the corporate skill it shows, and how to say it (copy-ready; [X] placeholders are for the person's own numbers). Users can uncheck skills so they stop counting, and add skills from outside their record that count toward matches
 4. Your goal: an encouragement message and a target diagram (You in the center, short-term starts in the middle ring, dream targets in the outer ring). "What sounds like you" dream themes help people who can't name a dream job; they can also pick any role or say "not sure yet"
@@ -37,6 +37,7 @@ Open http://localhost:8000 and click **Load demo: Jordan Lee** to start at the S
 - `src/translate.js` – the translation rules: what someone did -> corporate skill -> how to say it (the 18-row table from the Skills spec, plus technical skills); typical tasks per code; tags for user-added skills. To add or change a skill, edit one entry in `rules`
 - `src/jst.js` – JST and resume text parsers and redaction (SSN/DoD ID/email/phone removed before parsing). Dates and credit recommendations are deliberately not kept
 - `src/ui.js` – shared form pieces: `help` (the "?" bubble), `field`, `pills` (tap choices), `importance`, `tagList`
+- `src/data/zips.json` – ZIP codes with town and location (New Jersey only for now). **Generated** by `scripts/build-zips.py` from GeoNames (CC BY 4.0; attribution is shown in the app). Searched by `src/data/zipSearch.js`; the ZIP the person picks centers the help map
 - `src/data/codes.json` – every MOS, AFSC, and rate (~12,000 codes, with the civilian jobs each lines up with). **Generated** by `scripts/build-codes.py`; don't hand-edit. Searched by `src/data/codeSearch.js`
 - `src/data/military.js` – a small curated list of common codes with TYPICAL TASKS (used when a person gives no tasks), billets (with civilian equivalents), pay grades
 - `src/data/links.js` – outside links (Stability Navigator URL goes here)
@@ -44,6 +45,16 @@ Open http://localhost:8000 and click **Load demo: Jordan Lee** to start at the S
 - `src/data/dreams.js` – dream themes (groups of role ids) for the Your goal step
 - `src/data/careers.js` – ~25 curated roles; `src/data/pathways.js` – each role's Opportunity Map copy, work style, and time estimate; `src/data/credentials.js` – credential cost/time/funding/first step; `src/data/places.js` – map places
 - `src/views/*.js` – one file per step; `src/dom.js` – tiny `h()` element helper
+
+## Updating the ZIP list
+
+`src/data/zips.json` comes from the GeoNames US postal code file (https://download.geonames.org/export/zip/US.zip, `US.txt` inside). It currently holds New Jersey only, matching the map's coverage. To rebuild or add states:
+
+```sh
+python3 scripts/build-zips.py path/to/US.txt            # New Jersey
+python3 scripts/build-zips.py path/to/US.txt NJ NY PA   # chosen states
+python3 scripts/build-zips.py path/to/US.txt all        # every state (about 2 MB)
+```
 
 ## Updating the code list
 
@@ -60,7 +71,8 @@ It keeps Army, Marine Corps, Air Force, Space Force, Navy, and Coast Guard codes
 - Job data: curated set of ~25 roles, not live data. Pay ranges and credential costs are illustrative estimates; verify before presenting as fact.
 - Match score = 50% skills + 30% constraints (hours, distance, timing, pay, paid training, classes) + 20% interests. Roles under 30% are hidden.
 - Importance: each question's Low/Medium/Strong sets its weight (1/2/3) inside the constraints and interests parts. A "Strong" question the role fails demotes it a ring (hours and pay start at Strong). "Need help now = yes" makes income timing Strong.
-- Pay: users give both an hourly minimum and a yearly salary minimum. Each role is compared on one of them (`SALARIED` in `matching.js`).
+- Pay: users give both an hourly minimum and a yearly salary minimum. Typing one fills in the other (2,080 hours = a full-time year) and shows the conversion; each can still be changed. Each role is compared on one of them (`SALARIED` in `matching.js`).
+- Apprenticeships are not a question. They are a layer on the Opportunity Map ("Show everything / Only apprenticeships / Skip apprenticeships", saved as `state.apprenticeship`). A role counts as an apprenticeship role if one of its required credentials ends in `_apprenticeship` (`requiresApprenticeship` in `matching.js`), and its cards get a "Requires apprenticeship" tag.
 - Commute: "go farther for a better job" adds 0/10/20/30 miles of flexibility.
 - Answers shape: see `defaultAnswers` in `state.js`. Questionnaire choices map to interest tags in `WORK_TAGS` / `MOMENT_TAGS` in `matching.js`.
 - Opportunity Map rings are based on time, not score: with nothing missing, time = the role's `baseWeeks`; with a credential missing, time = its `months` in `pathways.js`. Up to 3 months = Earn now, up to 12 = Short training, longer = Big moves. Max 8 roles per ring, best match first.

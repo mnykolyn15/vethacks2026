@@ -1,11 +1,12 @@
 import { h } from "../dom.js";
 import { state, profile } from "../state.js";
-import { rankRoles, rankHorizons, buildPath, scoreRole, fitSummary, daytimeOnly, HORIZONS, HORIZON_ORDER, WEIGHTS } from "../matching.js";
+import { rankRoles, rankHorizons, buildPath, scoreRole, fitSummary, daytimeOnly, requiresApprenticeship, HORIZONS, HORIZON_ORDER, WEIGHTS } from "../matching.js";
 import { careers } from "../data/careers.js";
 import { credentials } from "../data/credentials.js";
 import { pathways } from "../data/pathways.js";
 import { skillLabels } from "../translate.js";
 import { dreamOptions } from "./goal.js";
+import { pills as choicePills } from "../ui.js"; // the view has its own `pills` for the ring labels
 
 const NS = "http://www.w3.org/2000/svg";
 const svg = (tag, attrs = {}, ...kids) => {
@@ -37,8 +38,9 @@ function earnBy(dateStr) {
 
 export function opportunityView(ctx) {
   const prof = profile();
-  const groups = rankHorizons(prof);
-  const { top } = rankRoles(prof);
+  const pref = { apprenticeship: state.apprenticeship }; // the apprenticeship layer: all, only, or none
+  const groups = rankHorizons(prof, undefined, pref);
+  const { top } = rankRoles(prof, undefined, pref);
   if (!state.selected && top) state.selected = top.role.id;
   const scoreOf = (id) => scoreRole(careers.find((c) => c.id === id), prof);
   const by = earnBy(state.answers.incomeBy);
@@ -194,7 +196,8 @@ export function opportunityView(ctx) {
     const missing = s.missing.map((c) => credentials[c].name);
     return h("li", { class: "opp-card" },
       h("div", { class: "opp-card-head" }, h("h4", {}, s.role.title),
-        h("div", { class: "opp-tags" }, h("span", { class: `tag ${MODE_CLASS[path.mode]}` }, path.mode), h("span", { class: `tag ${schedClass}` }, schedule))),
+        h("div", { class: "opp-tags" }, h("span", { class: `tag ${MODE_CLASS[path.mode]}` }, path.mode), h("span", { class: `tag ${schedClass}` }, schedule),
+          requiresApprenticeship(s.role) ? h("span", { class: "tag tag-appr" }, "Requires apprenticeship") : null)),
       h("p", { class: "opp-meta" }, `${payRange(s.role)} (estimate) · ${timeLabel(s)} · ${pct(s.total)} match`),
       h("p", {}, path.blurb),
       s.matchedSkills.length ? h("p", { class: "opp-bring" }, h("strong", {}, "You bring: "), skillNames(s.matchedSkills)) : null,
@@ -239,6 +242,11 @@ export function opportunityView(ctx) {
   return h("section", { class: "opp" },
     h("h2", {}, "Start small, then grow outward"),
     h("p", { class: "opp-intro" }, `The inner circle is work that gets you earning ${by}. Each ring out takes more training and pays off further down the road. Tap a ring, then compare any two roles.`),
+    h("div", { class: "layer" },
+      h("h3", {}, "Apprenticeships"),
+      h("p", { class: "hint" }, "Some roles require an apprenticeship: paid, structured training that can take a few years. Do you want to see them?"),
+      choicePills({ options: [["all", "Show everything"], ["only", "Only apprenticeships"], ["none", "Skip apprenticeships"]], selected: [state.apprenticeship], single: true, label: "Apprenticeships",
+        onchange: (v) => { state.apprenticeship = v[0] || "all"; ctx.refresh(); } })),
     chart,
     h("p", { class: "legend" }, "Inner: earn now · Middle: short training · Outer: big moves"),
     h("div", { class: "path-box" },

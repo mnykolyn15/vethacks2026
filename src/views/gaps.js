@@ -6,7 +6,7 @@ import { credentials } from "../data/credentials.js";
 
 export function gapsView(ctx) {
   const prof = profile();
-  const { top } = rankRoles(prof);
+  const { top } = rankRoles(prof, undefined, { apprenticeship: state.apprenticeship });
   const role = careers.find((c) => c.id === state.selected) || top?.role;
   if (!role) return h("section", {}, h("h2", {}, "Gaps"), h("p", {}, "No matches yet — go back and adjust your answers."));
   const s = scoreRole(role, prof);

@@ -17,7 +17,8 @@ const loadScript = (src) => new Promise((res, rej) => {
 });
 
 export function mapView(ctx) {
-  let home = { ...DEFAULT_HOME };
+  const a = state.answers;
+  let home = a.lat != null ? { lat: a.lat, lng: a.lng } : { ...DEFAULT_HOME }; // the ZIP they gave, else a New Jersey default
   const filters = { placement: true, benefits: true, training: true };
   const mapEl = h("div", { id: "map", class: "map" });
   const list = h("ul", { class: "cards" });
@@ -63,6 +64,7 @@ export function mapView(ctx) {
   draw();
   return h("section", {},
     h("h2", {}, "In-person help near you"),
+    a.zipPlace ? h("p", { class: "hint" }, `Showing places near ZIP ${a.zip} (${a.zipPlace}).`) : h("p", { class: "hint" }, "Add your ZIP code in the Questions step to center this on where you live. For now it starts in northern New Jersey."),
     state.location ? h("p", { class: "rule" }, `Demo location: ${state.location}. This county is made up for the demo, and the pins are sample data.`) : null,
     h("p", { class: "privacy" }, "⚠️ Verify hours and phone numbers before you go. Locations should come from the official VA facility locator and the Department of Labor American Job Center directory."),
     h("p", {}, "Official lookup: ",

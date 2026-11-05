@@ -141,7 +141,7 @@ function jobCard(job, onRemove) {
     tasks.setSuggestions([]);
     typical.hidden = true;
   }
-  const codeBox = combobox({ id: codeId, value: job.code, label: "MOS, AFSC, or rate", placeholder: "Search by code or title, like 0311, 3E0X2, EM, or rifleman",
+  const codeBox = combobox({ id: codeId, value: job.code, label: "MOS, AFSC, or Rate", placeholder: "Search by code or title, like 0311, 3E0X2, EM, or rifleman",
     search: searchCodes, onpick: (hit) => apply(hit, true) });
   const code = codeBox.input;
   // Typing a full code without picking from the list still finds it.
@@ -152,7 +152,7 @@ function jobCard(job, onRemove) {
 
   const el = h("fieldset", { class: "job" },
     h("legend", {}, "Your service job"),
-    field("MOS, AFSC, or rate", codeBox.el, "Your job code. The Army and Marine Corps use an MOS (like 91D or 0311), the Air Force uses an AFSC (like 3E0X2), and the Navy and Coast Guard use a rate (like EM or HM). It's on your DD-214, JST, or orders. You can also search by job title.", { forId: codeId }),
+    field("MOS, AFSC, or Rate", codeBox.el, "Your job code. The Army and Marine Corps use an MOS (like 91D or 0311), the Air Force uses an AFSC (like 3E0X2), and the Navy and Coast Guard use a rate (like EM or HM). It's on your DD-214, JST, or orders. You can also search by job title.", { forId: codeId }),
     found, civ,
     field("Job title", title, "Your MOS title, like Power Generation Equipment Repairer. This is the functional title: the job you did day to day.", { forId: title.id }),
     field("Pay grade (optional)", grade, "For example, E-5 is a Sergeant in the Army. It helps show leadership experience. It's on your DD-214 or JST.", { forId: grade.id }),
@@ -217,7 +217,7 @@ export function intakeView(ctx) {
   const jstPaste = h("textarea", { rows: 6, "aria-label": "Paste your JST text", placeholder: "Paste the text of your JST here (occupation, courses, certifications)" });
   loadCodes(); // fetch the full code list now so search is instant
   let pickedHit = null;
-  const codeBox = combobox({ id: "code-input", label: "MOS, AFSC, or rate", placeholder: "Search by code or title, like 0311, 3E0X2, EM, or rifleman",
+  const codeBox = combobox({ id: "code-input", label: "MOS, AFSC, or Rate", placeholder: "Search by code or title, like 0311, 3E0X2, EM, or rifleman",
     search: searchCodes, onpick: (hit) => { pickedHit = hit; refresh(); } });
   const codeInput = codeBox.input;
   codeInput.addEventListener("input", () => { pickedHit = null; });
@@ -287,8 +287,8 @@ export function intakeView(ctx) {
           try { build(new File([await (await fetch(SAMPLE_JST)).blob()], "jordan-lee-jst.pdf", { type: "application/pdf" })); }
           catch { status.textContent = "Couldn't load the sample JST."; }
         } }, "No JST handy? Try the sample (made-up Jordan Lee)")),
-      panel("3. MOS, AFSC, or rate", "Your job code or title", () => codeInput.value.trim(),
-        h("label", { for: "code-input", class: "sr-only" }, "MOS, AFSC, or rate"), codeBox.el,
+      panel("3. MOS, AFSC, or Rate", "Your job code or title", () => codeInput.value.trim(),
+        h("label", { for: "code-input", class: "sr-only" }, "MOS, AFSC, or Rate"), codeBox.el,
         h("p", { class: "hint" }, "The Army and Marine Corps use an MOS, the Air Force an AFSC, and the Navy and Coast Guard a rate. Search by code or by job title."))),
     buildBtn,
     status, confirmBox,

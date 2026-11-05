@@ -1,6 +1,6 @@
 import { h } from "../dom.js";
 import { state, profile } from "../state.js";
-import { rankHorizons, scoreRole, HORIZONS, HORIZON_ORDER } from "../matching.js";
+import { rankHorizons, scoreRole, requiresApprenticeship, HORIZONS, HORIZON_ORDER } from "../matching.js";
 import { careers } from "../data/careers.js";
 import { pathways } from "../data/pathways.js";
 import { dreamThemes } from "../data/dreams.js";
@@ -40,7 +40,7 @@ function wrap(title, max = 17) {
 
 export function goalView(ctx) {
   const prof = profile();
-  const groups = rankHorizons(prof);
+  const groups = rankHorizons(prof, undefined, { apprenticeship: state.apprenticeship });
   const clearFirst = (list) => [...list].sort((a, b) => a.blocked.length - b.blocked.length);
   const scored = new Map(careers.map((c) => [c.id, scoreRole(c, prof)]));
   const starts = clearFirst(groups.earn).slice(0, 3);
@@ -118,7 +118,8 @@ export function goalView(ctx) {
           : h("p", { class: "pick-empty" }, "Tap a circle in the middle ring to choose where to start.")),
       h("div", { class: "pick dream" }, h("p", { class: "eyebrow" }, "Your dream target"),
         dreamS ? [h("h3", {}, dreamS.role.title), h("p", {}, pathways[dreamS.role.id].blurb),
-          h("small", {}, `${usd(dreamS.role.pay.lo)}–${usd(dreamS.role.pay.hi)}/yr (estimate) · ${HORIZONS[dreamS.horizon].span} to get there`)]
+          h("small", {}, `${usd(dreamS.role.pay.lo)}–${usd(dreamS.role.pay.hi)}/yr (estimate) · ${HORIZONS[dreamS.horizon].span} to get there`),
+          requiresApprenticeship(dreamS.role) ? h("small", { class: "appr-note" }, "Requires an apprenticeship: paid training that takes a few years.") : null]
           : h("p", { class: "pick-empty" }, "Tap a circle in the outer ring, or pick a theme above to see ideas.")));
   }
 

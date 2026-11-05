@@ -3,16 +3,17 @@ import { translate, heldCredentials, tagsForSkill } from "./translate.js";
 // How much each question matters to the person. Hours and pay start "strong" because they are usually deal-breakers.
 export const defaultImportance = () => ({
   work: "medium", pace: "medium", where: "medium", people: "medium", moments: "medium",
-  hours: "strong", commute: "medium", timing: "medium", pay: "strong", training: "medium", education: "medium"
+  hours: "strong", commute: "medium", timing: "medium", pay: "strong", education: "medium"
 });
 
 export const defaultAnswers = () => ({
   workTypes: [], pace: [], where: [], people: [], moments: [], hours: [],
   importance: defaultImportance(),
+  zip: "", zipPlace: "", lat: null, lng: null,
   commuteMiles: 30, commuteFlex: 0, relocate: "no",
   incomeBy: "", needsHelp: null,
   minHourly: "", minSalary: "",
-  wantsPaidTraining: false, education: "short", hoursPerWeek: 5, freeText: ""
+  education: "short", hoursPerWeek: 5, freeText: ""
 });
 
 // Jordan Lee: the made-up demo veteran from the feature list (entered by hand, no parsing).
@@ -31,8 +32,9 @@ export const jordan = {
   answers: { ...defaultAnswers(),
     workTypes: ["physical", "build"], pace: ["problems", "pressure"], where: ["different", "indoors"], people: ["crew", "leading"],
     moments: ["puzzle", "pressure", "people"], hours: ["days"],
+    zip: "07501", zipPlace: "Paterson, NJ", lat: 40.9143, lng: -74.1671,
     commuteMiles: 30, commuteFlex: 10, relocate: "no", incomeBy: "2027-01-31", needsHelp: "no",
-    minHourly: 25, minSalary: 52000, wantsPaidTraining: true, education: "short", hoursPerWeek: 5,
+    minHourly: 25, minSalary: 52000, education: "short", hoursPerWeek: 5,
     freeText: "A paid trade with daytime hours, close to home." },
   location: "Riverbend County, NJ", // made-up county, like Jordan
   // Skills from life outside the record. Jordan can uncheck or remove them like any other skill.
@@ -41,7 +43,7 @@ export const jordan = {
 
 export const state = {
   jst: null, location: null, extraSkills: [], uncheckedSkills: [], answers: defaultAnswers(), answersDone: false, selected: null,
-  dream: null, dreamTheme: null, firstJob: null, dreamNote: "", compare: [], horizon: "earn"
+  dream: null, dreamTheme: null, apprenticeship: "all", firstJob: null, dreamNote: "", compare: [], horizon: "earn"
 };
 
 export function profile() {
