@@ -1,61 +1,47 @@
-import { roles } from "./data.js";
+import { h } from "./dom.js";
+import { state, jordan, defaultAnswers } from "./state.js";
+import { intakeView } from "./views/intake.js";
+import { questionnaireView } from "./views/questionnaire.js";
+import { skillsView } from "./views/skills.js";
+import { ringsView } from "./views/rings.js";
+import { gapsView } from "./views/gaps.js";
+import { mapView } from "./views/map.js";
 
-const search = document.getElementById("search");
-const results = document.getElementById("results");
-const detail = document.getElementById("detail");
+const steps = [
+  { label: "Upload", view: intakeView },
+  { label: "Questions", view: questionnaireView, needs: () => state.jst },
+  { label: "Skills", view: skillsView, needs: () => state.jst },
+  { label: "Matches", view: ringsView, needs: () => state.jst && state.answersDone },
+  { label: "Gaps", view: gapsView, needs: () => state.jst && state.answersDone },
+  { label: "Help nearby", view: mapView }
+];
+let current = 0;
+const root = document.getElementById("app");
 
-function matches(role, query) {
-  const q = query.trim().toLowerCase();
-  if (!q) return true;
-  return [role.code, role.title, ...role.civilianRoles, ...role.skills]
-    .some((s) => s.toLowerCase().includes(q));
+function go(i) {
+  current = Math.max(0, Math.min(steps.length - 1, i));
+  render();
+  window.scrollTo(0, 0);
 }
 
-function renderResults() {
-  const found = roles.filter((r) => matches(r, search.value));
-  results.replaceChildren(...found.map((role) => {
-    const li = document.createElement("li");
-    const btn = document.createElement("button");
-    btn.textContent = `${role.code} – ${role.title}`;
-    btn.addEventListener("click", () => showDetail(role));
-    li.append(btn);
-    return li;
+function loadJordan() {
+  state.jst = structuredClone(jordan.jst);
+  state.answers = { ...defaultAnswers(), ...structuredClone(jordan.answers) };
+  state.answersDone = true;
+  state.selected = null;
+  go(3);
+}
+
+function render() {
+  const ctx = { next: () => go(current + 1), back: () => go(current - 1) };
+  const nav = h("nav", { class: "steps", "aria-label": "Progress" }, steps.map((s, i) => {
+    const locked = s.needs && !s.needs();
+    return h("button", { class: i === current ? "step current" : "step", disabled: locked, "aria-current": i === current ? "step" : null, onclick: () => go(i) }, `${i + 1}. ${s.label}`);
   }));
-  if (!found.length) {
-    const li = document.createElement("li");
-    li.textContent = "No matches yet. Try a different term.";
-    results.append(li);
-  }
+  root.replaceChildren(
+    h("header", {}, h("h1", {}, "Veterans Build America"),
+      h("p", {}, "From your JST to career matches, gaps to close, one action this week, and help nearby."),
+      h("button", { class: "demo", onclick: loadJordan }, "Load demo: Jordan Lee")),
+    nav, h("main", {}, steps[current].view(ctx)));
 }
-
-function list(title, items) {
-  const h = document.createElement("h3");
-  h.textContent = title;
-  const ul = document.createElement("ul");
-  ul.append(...items.map((t) => Object.assign(document.createElement("li"), { textContent: t })));
-  return [h, ul];
-}
-
-function showDetail(role) {
-  const heading = document.createElement("h2");
-  heading.textContent = `${role.title} (${role.branch} ${role.code})`;
-  const copy = document.createElement("button");
-  copy.textContent = "Copy resume bullets";
-  copy.addEventListener("click", async () => {
-    await navigator.clipboard.writeText(role.bullets.map((b) => `• ${b}`).join("\n"));
-    copy.textContent = "Copied!";
-    setTimeout(() => (copy.textContent = "Copy resume bullets"), 1500);
-  });
-  detail.replaceChildren(
-    heading,
-    ...list("Civilian job titles", role.civilianRoles),
-    ...list("Transferable skills", role.skills),
-    ...list("Resume bullets", role.bullets),
-    copy
-  );
-  detail.hidden = false;
-  detail.scrollIntoView({ behavior: "smooth" });
-}
-
-search.addEventListener("input", renderResults);
-renderResults();
+render();

@@ -1,0 +1,57 @@
+// Curated demo set of ~25 roles. Pay is an ILLUSTRATIVE annual range for northern NJ;
+// verify against BLS / O*NET before presenting as fact.
+// hours: "days" | "mixed" (some on-call/overtime) | "shifts" (nights/rotating)
+// commute: typical miles to the nearest employers.
+const r = (id, title, field, lo, hi, hours, commute, skills, interests, handsOn, setting, team, requires, paid, baseWeeks) =>
+  ({ id, title, field, pay: { lo, hi }, hours, commute, skills, interests, handsOn, setting, team, requires, paidTraining: paid, baseWeeks });
+
+export const careers = [
+  r("gen_tech", "Standby Generator Technician", "Power & facilities", 52000, 78000, "days", 20,
+    ["mechanical", "diagnostics", "maintenance", "electrical", "safety"], ["mechanical", "electrical"], true, "either", "either", [], true, 3),
+  r("diesel_tech", "Diesel Mechanic (Fleet)", "Transportation", 50000, 80000, "days", 25,
+    ["mechanical", "diagnostics", "maintenance", "safety"], ["mechanical"], true, "indoors", "either", [], true, 3),
+  r("facilities_tech", "Facilities Maintenance Technician", "Power & facilities", 48000, 72000, "days", 15,
+    ["maintenance", "mechanical", "electrical", "safety", "documentation"], ["mechanical", "electrical"], true, "indoors", "either", [], true, 2),
+  r("hvac_tech", "HVAC-R Technician", "Skilled trades", 55000, 90000, "mixed", 25,
+    ["mechanical", "diagnostics", "electrical", "customer", "safety"], ["mechanical", "electrical", "people"], true, "either", "solo", ["epa608"], true, 4),
+  r("industrial_electrician", "Industrial Electrician (Apprentice)", "Skilled trades", 45000, 100000, "days", 30,
+    ["electrical", "diagnostics", "safety", "maintenance", "construction"], ["electrical", "mechanical"], true, "either", "team", ["electrical_apprenticeship"], true, 8),
+  r("solar_tech", "Solar Installer / Technician", "Skilled trades", 45000, 70000, "days", 30,
+    ["electrical", "construction", "safety", "mechanical"], ["electrical", "outdoors"], true, "outdoors", "team", ["nabcep_pv"], true, 4),
+  r("elevator", "Elevator Mechanic (Apprentice)", "Skilled trades", 60000, 140000, "days", 35,
+    ["mechanical", "electrical", "diagnostics", "safety"], ["mechanical", "electrical"], true, "either", "team", ["elevator_apprenticeship"], true, 12),
+  r("plant_ops", "Boiler / Power Plant Operator", "Power & facilities", 60000, 95000, "shifts", 40,
+    ["mechanical", "maintenance", "safety", "documentation", "diagnostics"], ["mechanical", "electrical"], true, "indoors", "either", ["stationary_license"], false, 10),
+  r("data_center", "Data Center Facilities Technician", "Technology", 55000, 85000, "mixed", 35,
+    ["electrical", "mechanical", "maintenance", "it", "documentation", "safety"], ["tech", "electrical"], true, "indoors", "team", ["comptia_a"], true, 6),
+  r("project_coord", "Construction Project Coordinator", "Construction", 55000, 80000, "days", 25,
+    ["projectmgmt", "documentation", "supervision", "construction", "safety"], ["leading", "logistics"], false, "either", "team", ["osha30", "capm"], false, 6),
+  r("safety_coord", "Safety Coordinator", "Construction", 60000, 90000, "days", 25,
+    ["safety", "documentation", "training", "supervision"], ["security", "leading", "people"], false, "either", "team", ["osha30"], false, 3),
+  r("maint_supervisor", "Maintenance Supervisor", "Power & facilities", 70000, 100000, "days", 25,
+    ["supervision", "maintenance", "mechanical", "safety", "projectmgmt", "documentation"], ["leading", "mechanical"], false, "indoors", "team", ["osha30"], false, 5),
+  r("qc_inspector", "Quality Control Inspector", "Manufacturing", 45000, 70000, "days", 25,
+    ["documentation", "safety", "diagnostics", "mechanical"], ["mechanical", "data"], true, "indoors", "either", [], true, 3),
+  r("heavy_equip", "Heavy Equipment Operator", "Construction", 55000, 95000, "days", 30,
+    ["driving", "construction", "mechanical", "safety"], ["outdoors", "mechanical"], true, "outdoors", "team", ["osha30"], true, 4),
+  r("welder", "Welder / Fabricator", "Manufacturing", 45000, 80000, "days", 25,
+    ["construction", "mechanical", "safety"], ["mechanical"], true, "indoors", "either", ["weld_cert"], true, 8),
+  r("wind_tech", "Wind Turbine Technician", "Energy", 50000, 80000, "days", 60,
+    ["electrical", "mechanical", "diagnostics", "safety"], ["outdoors", "electrical", "mechanical"], true, "outdoors", "team", ["gwo_wind"], true, 6),
+  r("cdl_driver", "CDL-A Truck Driver (Local)", "Transportation", 55000, 85000, "mixed", 25,
+    ["driving", "safety", "logistics", "documentation"], ["logistics", "outdoors"], true, "either", "solo", ["cdl_a"], false, 6),
+  r("warehouse_sup", "Warehouse Supervisor", "Logistics", 45000, 70000, "mixed", 20,
+    ["logistics", "supervision", "documentation", "safety"], ["logistics", "leading"], true, "indoors", "team", ["forklift"], false, 2),
+  r("it_support", "IT Support Specialist", "Technology", 45000, 70000, "days", 20,
+    ["it", "customer", "diagnostics", "documentation"], ["tech", "people"], false, "indoors", "either", ["comptia_a"], false, 10),
+  r("network_admin", "Network Administrator", "Technology", 65000, 100000, "days", 30,
+    ["it", "diagnostics", "documentation", "security"], ["tech", "security"], false, "indoors", "either", ["comptia_a", "network_plus"], false, 20),
+  r("emt", "Emergency Medical Technician", "Health", 38000, 60000, "shifts", 20,
+    ["patientcare", "safety", "documentation"], ["medical", "people"], true, "either", "team", ["emt_cert"], false, 14),
+  r("police", "Police Officer", "Public safety", 60000, 110000, "shifts", 25,
+    ["security", "safety", "documentation"], ["security", "people", "leading"], true, "outdoors", "team", ["police_academy"], true, 24),
+  r("hr_generalist", "HR Generalist", "Business", 55000, 80000, "days", 20,
+    ["documentation", "customer", "training"], ["people"], false, "indoors", "team", ["hr_cert"], false, 12),
+  r("data_analyst", "Data Analyst", "Technology", 60000, 95000, "days", 25,
+    ["analysis", "documentation", "it"], ["data", "tech"], false, "indoors", "either", ["data_cert"], false, 16)
+];
