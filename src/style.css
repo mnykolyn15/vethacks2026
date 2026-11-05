@@ -225,6 +225,11 @@ button.help[aria-expanded=true] { background: var(--navy); color: #fff; }
 .appr-note { color: #7a4800 !important; font-weight: 600; }
 
 /* Your target: motivations, rings, role detail, list, and path */
+.hero { background: linear-gradient(135deg, var(--navy), #2b4570) var(--navy); color: #fff; border-radius: 14px; padding: 1.25rem 1.5rem; margin: .5rem 0 1rem; }
+.hero .eyebrow { color: #f4c77d; }
+.opp .hero h3 { color: #fff; margin: .2rem 0 .4rem; font-size: 1.8rem; line-height: 1.2; }
+.hero p { margin: .4rem 0; }
+.hero-skills { background: #ffffff1f; border-radius: 8px; padding: .5rem .75rem; }
 .target-screen h2 { margin: .5rem 0 .25rem; }
 .tgt-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .5rem 1rem; }
 .tgt-toggle { display: inline-flex; }

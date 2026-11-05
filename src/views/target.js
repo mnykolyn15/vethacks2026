@@ -311,9 +311,18 @@ export function targetView(ctx) {
     onchange: (sel) => { state.motivations = sel; state.motivationsEdited = true; paint(); } });
   const note = h("textarea", { id: "target-note", rows: 2, placeholder: "For example, being home by 5", oninput: (e) => (state.dreamNote = e.target.value) }, state.dreamNote);
 
+  // The encouragement people see first: they already have a lot to build on.
+  const heroSkills = prof.skillItems.filter((s) => s.confirmed).map((s) => s.corporate).slice(0, 4);
+  const hero = h("div", { class: "hero" },
+    h("p", { class: "eyebrow" }, "Your potential"),
+    h("h3", {}, "You have plenty of skills, and they can take you far."),
+    h("p", {}, "We want to help you see and actualize that potential, today and beyond. Start close to the center, then aim as far out as you dare."),
+    heroSkills.length ? h("p", { class: "hero-skills" }, `You already bring ${prof.skills.length} skills employers hire for, like ${heroSkills.join(", ")}.`) : null);
+
   paint();
   return h("section", { class: "opp target-screen" },
     h("div", { class: "tgt-head" }, h("h2", {}, "Your target"), viewToggle),
+    hero,
     h("p", { class: "opp-intro" }, `The inner ring is work that can get you earning ${by}. Each ring out takes more training and can pay off further down the road.`),
     h("div", { class: "motivations" }, h("h3", {}, "What sounds like you?"), h("p", { class: "hint" }, "Pick as many as you like."), motivations),
     targetBox, listBox, detailBox, pathBox, compareBox,
