@@ -229,3 +229,48 @@ button.help[aria-expanded=true] { background: var(--navy); color: #fff; }
 .source.has-input { border-color: var(--ok); }
 .badge-added { margin-left: .5rem; padding: .05rem .5rem; border-radius: 99px; background: #e3f1e6; color: #1d5c32; font-size: .8rem; font-weight: 700; vertical-align: middle; }
 .source-note { margin-top: 1.5rem; }
+
+/* Skills step: military skill -> corporate skill -> how to say it */
+.skill-group h3 { margin-bottom: .1rem; }
+.skill-group .hint { margin-top: 0; }
+.skill .confirm-skill { font-weight: 400; margin: 0 0 .5rem; }
+.skill .confirm-skill strong, .skill .skill-row strong { color: var(--navy); }
+.skill .skill-row { margin: .25rem 0 .5rem; }
+.skill .say small { color: #555; font-weight: 600; }
+.skill .say .line { margin: .2rem 0 .6rem; }
+
+/* Goal step: target diagram */
+.hero { background: linear-gradient(135deg, var(--navy), #2b4570); color: #fff; border-radius: 14px; padding: 1.25rem 1.5rem; margin: .5rem 0 1rem; }
+.hero .eyebrow { color: #f4c77d; }
+.hero h2 { color: #fff; margin: .2rem 0 .4rem; font-size: 1.8rem; line-height: 1.2; }
+.hero p { margin: .4rem 0; }
+.hero-skills { background: #ffffff1f; border-radius: 8px; padding: .5rem .75rem; }
+.themes h3 { margin-bottom: .25rem; }
+.target-wrap { margin: 1rem auto .25rem; max-width: 36rem; }
+.target { display: block; width: 100%; }
+.tgt-ring { stroke: #fff; stroke-width: 3; }
+.tgt-dream { fill: #fbeed6; } .tgt-start { fill: #c8d6e5; } .tgt-you { fill: var(--navy); }
+.tgt-label { fill: #7a4800; font-size: 12px; font-weight: 700; letter-spacing: .08em; }
+.tgt-label-start { fill: #1e3a5f; }
+.tgt-you-title { fill: #fff; font-size: 22px; font-weight: 700; letter-spacing: .1em; }
+.tgt-you-sub { fill: #dbe3f3; font-size: 14px; }
+.tgt-empty { fill: #44505f; font-size: 13px; }
+.tgt-path { stroke: #a35f00; stroke-width: 3; stroke-dasharray: 7 6; opacity: .8; pointer-events: none; }
+.tgt-pill { cursor: pointer; }
+.tgt-pill rect { fill: #fff; stroke: var(--navy); stroke-width: 2.5; }
+.tgt-pill text { fill: var(--navy); font-size: 11.5px; font-weight: 600; pointer-events: none; }
+.tgt-pill.dream rect { stroke: #a35f00; }
+.tgt-pill:hover rect, .tgt-pill:focus rect { stroke-width: 4; }
+.tgt-pill.selected rect { fill: var(--navy); }
+.tgt-pill.dream.selected rect { fill: #a35f00; }
+.tgt-pill.selected text { fill: #fff; }
+.tgt-pill:focus-visible { outline: none; } .tgt-pill:focus-visible rect { stroke: #f2b705; stroke-width: 5; }
+.goal-picks { display: grid; gap: 1rem; grid-template-columns: 1fr; margin: 1rem 0; }
+@media (min-width: 40rem) { .goal-picks { grid-template-columns: 1fr 1fr; } }
+.pick { background: #fff; border: 1px solid #d8dce6; border-left: 5px solid var(--navy); border-radius: 10px; padding: .5rem 1rem 1rem; }
+.pick.dream { border-left-color: #a35f00; }
+.pick h3 { margin: .1rem 0 .3rem; }
+.pick p { margin: .3rem 0; }
+.pick small { display: block; color: #555; }
+.pick-empty { color: #555; }
+.goal-more { margin: 1rem 0; } .goal-more summary { cursor: pointer; color: var(--navy); }

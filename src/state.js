@@ -41,18 +41,18 @@ export const jordan = {
 
 export const state = {
   jst: null, location: null, extraSkills: [], uncheckedSkills: [], answers: defaultAnswers(), answersDone: false, selected: null,
-  dream: null, firstJob: null, dreamNote: "", compare: [], horizon: "earn"
+  dream: null, dreamTheme: null, firstJob: null, dreamNote: "", compare: [], horizon: "earn"
 };
 
 export function profile() {
   const skills = (state.jst ? translate(state.jst) : [])
-    .map((s) => ({ ...s, confirmed: !state.uncheckedSkills.includes(s.tag) }));
+    .map((s) => ({ ...s, confirmed: !state.uncheckedSkills.includes(s.id) }));
   const added = state.extraSkills.map((text) => ({
     text, tags: tagsForSkill(text), creds: heldCredentials({ certs: [text], courses: [] }), line: `${text}.`
   }));
   return {
     // Only skills the user has left checked count toward matches.
-    skills: [...new Set([...skills.filter((s) => s.confirmed).map((s) => s.tag), ...added.flatMap((a) => a.tags)])],
+    skills: [...new Set([...skills.filter((s) => s.confirmed).map((s) => s.tag).filter(Boolean), ...added.flatMap((a) => a.tags)])],
     skillItems: skills, added,
     credentials: state.jst ? heldCredentials(state.jst, state.extraSkills) : [],
     answers: state.answers

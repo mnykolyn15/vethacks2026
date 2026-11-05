@@ -110,7 +110,7 @@ export const lookupCode = (raw) => index.get(normalizeCode(raw)) || null;
 // Billets: the position someone held (the "corporate" title), as opposed to the MOS (the functional job).
 // `civilian` is the closest everyday title; `does` is what that position typically involves.
 export const billets = [
-  { title: "Team Leader", civilian: "Team Lead / Crew Lead", does: "Led a small team and was accountable for its people, equipment, and results" },
+  { title: "Team Leader", civilian: "Team Lead / Crew Lead", does: "Led a small team and was responsible for its people, gear, and results" },
   { title: "Squad Leader", civilian: "Supervisor", does: "Supervised a squad, planned daily tasks, and trained junior members" },
   { title: "Section Chief", civilian: "Section Manager", does: "Supervised a section and coordinated its daily work" },
   { title: "Platoon Sergeant", civilian: "Operations Manager", does: "Supervised a platoon and advised the commander on training and personnel" },

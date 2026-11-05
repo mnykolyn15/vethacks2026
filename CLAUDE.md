@@ -4,8 +4,8 @@ Static web app for the Veteran's Day hackathon ("veteran's build"). Flow, built 
 
 1. Share a background: resume, JST, and/or a code (MOS, AFSC, or rate) on one page. Whatever is given is merged into one confirm form (job, pay grade, billets, tasks, courses, certifications)
 2. Paged questionnaire (6 short pages). Each question has a Low/Medium/Strong "how much does this matter" control that weights the ranking
-3. Civilian skills translation with copy-ready resume lines tied to evidence. Users can uncheck skills so they stop counting, and add skills from outside their record (hobbies, home life, certifications) that count toward matches
-4. Your goal: shows the closest roles the person could start soon and asks which interests them, plus their dream job (or "not sure yet")
+3. Skills translation: each card shows the military skill (what the person did), the corporate skill it shows, and how to say it (copy-ready; [X] placeholders are for the person's own numbers). Users can uncheck skills so they stop counting, and add skills from outside their record that count toward matches
+4. Your goal: an encouragement message and a target diagram (You in the center, short-term starts in the middle ring, dream targets in the outer ring). "What sounds like you" dream themes help people who can't name a dream job; they can also pick any role or say "not sure yet"
 5. Opportunity Map: three rings (Earn now 0–3 months, Short training 3–12 months, Big moves 1–4 years), role cards, compare any two roles (what fits / what's missing or risky), and a dream-job path (short-term job -> long-term skill building -> dream job)
 6. Gaps for a role + one action this week (under 2 hours) with a deadline 7 days out and a backup plan
 7. Map of in-person veteran employment help
@@ -34,13 +34,14 @@ Open http://localhost:8000 and click **Load demo: Jordan Lee** to start at the S
 
 - `index.html` – page shell; `src/app.js` – step router and the Jordan demo loader
 - `src/matching.js` – scoring, ring placement, and the dream-job path (**start here**; weights and ring rules are exported constants)
-- `src/translate.js` – duty text -> civilian skill + resume line; MOS fallback duties and titles; tags for user-added skills
+- `src/translate.js` – the translation rules: what someone did -> corporate skill -> how to say it (the 18-row table from the Skills spec, plus technical skills); typical tasks per code; tags for user-added skills. To add or change a skill, edit one entry in `rules`
 - `src/jst.js` – JST and resume text parsers and redaction (SSN/DoD ID/email/phone removed before parsing). Dates and credit recommendations are deliberately not kept
 - `src/ui.js` – shared form pieces: `help` (the "?" bubble), `field`, `pills` (tap choices), `importance`, `tagList`
 - `src/data/codes.json` – every MOS, AFSC, and rate (~12,000 codes, with the civilian jobs each lines up with). **Generated** by `scripts/build-codes.py`; don't hand-edit. Searched by `src/data/codeSearch.js`
 - `src/data/military.js` – a small curated list of common codes with TYPICAL TASKS (used when a person gives no tasks), billets (with civilian equivalents), pay grades
 - `src/data/links.js` – outside links (Stability Navigator URL goes here)
 - `src/state.js` – shared state, default answers, Jordan's profile
+- `src/data/dreams.js` – dream themes (groups of role ids) for the Your goal step
 - `src/data/careers.js` – ~25 curated roles; `src/data/pathways.js` – each role's Opportunity Map copy, work style, and time estimate; `src/data/credentials.js` – credential cost/time/funding/first step; `src/data/places.js` – map places
 - `src/views/*.js` – one file per step; `src/dom.js` – tiny `h()` element helper
 

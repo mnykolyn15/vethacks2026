@@ -191,6 +191,7 @@ export function intakeView(ctx) {
       state.uncheckedSkills = []; // a new record means new skills to review
       state.location = null; // not the demo veteran anymore
       state.dream = null;
+      state.dreamTheme = null;
       state.firstJob = null;
       state.dreamNote = "";
       ctx.next();
