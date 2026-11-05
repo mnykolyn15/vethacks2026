@@ -37,14 +37,14 @@ export function pills({ options, selected = [], max = Infinity, exclusive = [], 
     }
     note.textContent = Number.isFinite(max) ? `${sel.length} of ${max} chosen` : "";
   };
-  for (const [value, text, hint] of options) {
+  for (const [value, text, hint, tag] of options) {
     const b = h("button", { type: "button", class: "pill", onclick: () => {
       if (sel.includes(value)) sel = sel.filter((v) => v !== value);
       else if (single || exclusive.includes(value)) sel = [value];
       else sel = [...sel.filter((v) => !exclusive.includes(v)), value];
       draw();
       onchange?.([...sel]);
-    } }, h("strong", {}, text), hint ? h("small", {}, hint) : null);
+    } }, h("strong", {}, text), hint ? h("small", {}, hint) : null, tag ? h("span", { class: "pill-tag" }, tag) : null);
     buttons.set(value, b);
     wrap.append(b);
   }

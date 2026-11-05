@@ -5,10 +5,9 @@ Static web app for the Veteran's Day hackathon ("veteran's build"). Flow, built 
 1. Share a background: resume, JST, and/or a code (MOS, AFSC, or Rate) on one page. Whatever is given is merged into one confirm form (job, pay grade, billets, tasks, courses, certifications)
 2. Paged questionnaire (6 short pages). Each question has a Low/Medium/Strong "how much does this matter" control that weights the ranking
 3. Skills translation: each card shows the military skill (what the person did), the corporate skill it shows, and how to say it (copy-ready; [X] placeholders are for the person's own numbers). Users can uncheck skills so they stop counting, and add skills from outside their record that count toward matches
-4. Your goal: an encouragement message and a target diagram (You in the center, short-term starts in the middle ring, dream targets in the outer ring). "What sounds like you" dream themes help people who can't name a dream job; they can also pick any role or say "not sure yet"
-5. Opportunity Map: three rings (Earn now 0–3 months, Short training 3–12 months, Big moves 1–4 years), role cards, compare any two roles (what fits / what's missing or risky), and a dream-job path (short-term job -> long-term skill building -> dream job)
-6. Gaps for a role + one action this week (under 2 hours) with a deadline 7 days out and a backup plan
-7. Map of in-person veteran employment help
+4. Your target: "What sounds like you?" motivation cards (pre-selected from Questions answers), one target with three rings (Earn now 0–3 months, Grow 3–12 months, Dream 1–4 years), a role detail card, a Target/List view toggle, Compare, and a Your path strip (first step -> grow, optional -> dream)
+5. Gaps for a role + one action this week (under 2 hours) with a deadline 7 days out and a backup plan
+6. Map of in-person veteran employment help
 
 No build step, no dependencies, no AI/API keys. Plain HTML + ES modules. Libraries load from CDNs at runtime: pdf.js, Tesseract.js, and Mammoth (file parsing, only when a file is uploaded) and Leaflet + OpenStreetMap tiles (map).
 
@@ -42,8 +41,8 @@ Open http://localhost:8000 and click **Load demo: Jordan Lee** to start at the S
 - `src/data/military.js` – a small curated list of common codes with TYPICAL TASKS (used when a person gives no tasks), billets (with civilian equivalents), pay grades
 - `src/data/links.js` – outside links (Stability Navigator URL goes here)
 - `src/state.js` – shared state, default answers, Jordan's profile
-- `src/data/dreams.js` – dream themes (groups of role ids) for the Your goal step
-- `src/data/careers.js` – ~25 curated roles; `src/data/pathways.js` – each role's Opportunity Map copy, work style, and time estimate; `src/data/credentials.js` – credential cost/time/funding/first step; `src/data/places.js` – map places
+- `src/data/dreams.js` – motivations (groups of role ids) for Your target, and how Questions answers pre-select them
+- `src/data/careers.js` – ~25 curated roles; `src/data/pathways.js` – each role's Your target copy, work style, and time estimate; `src/data/credentials.js` – credential cost/time/funding/first step; `src/data/places.js` – map places
 - `src/views/*.js` – one file per step; `src/dom.js` – tiny `h()` element helper
 
 ## Updating the ZIP list
@@ -69,15 +68,18 @@ It keeps Army, Marine Corps, Air Force, Space Force, Navy, and Coast Guard codes
 ## Decisions (from the feature list)
 
 - Job data: curated set of ~25 roles, not live data. Pay ranges and credential costs are illustrative estimates; verify before presenting as fact.
-- Match score = 50% skills + 30% constraints (hours, distance, timing, pay, paid training, classes) + 20% interests. Roles under 30% are hidden.
+- No scores on screen: the hackathon ground rule is no aptitude scores, so never show `total` or a percentage. `total` (50% skills + 30% constraints + 20% interests) only orders roles internally. Show "You bring X of your N skills" instead. Nothing is hidden for low fit.
 - Importance: each question's Low/Medium/Strong sets its weight (1/2/3) inside the constraints and interests parts. A "Strong" question the role fails demotes it a ring (hours and pay start at Strong). "Need help now = yes" makes income timing Strong.
 - Pay: users give both an hourly minimum and a yearly salary minimum. Typing one fills in the other (2,080 hours = a full-time year) and shows the conversion; each can still be changed. Each role is compared on one of them (`SALARIED` in `matching.js`).
-- Apprenticeships are not a question. They are a layer on the Opportunity Map ("Show everything / Only apprenticeships / Skip apprenticeships", saved as `state.apprenticeship`). A role counts as an apprenticeship role if one of its required credentials ends in `_apprenticeship` (`requiresApprenticeship` in `matching.js`), and its cards get a "Requires apprenticeship" tag.
+- Apprenticeships are not a question. They are a layer on Your target ("Show everything / Only apprenticeships / Skip apprenticeships", saved as `state.apprenticeship`). A role counts as an apprenticeship role if one of its required credentials ends in `_apprenticeship` (`requiresApprenticeship` in `matching.js`), and its cards get a "Requires apprenticeship" tag.
 - Commute: "go farther for a better job" adds 0/10/20/30 miles of flexibility.
 - Answers shape: see `defaultAnswers` in `state.js`. Questionnaire choices map to interest tags in `WORK_TAGS` / `MOMENT_TAGS` in `matching.js`.
-- Opportunity Map rings are based on time, not score: with nothing missing, time = the role's `baseWeeks`; with a credential missing, time = its `months` in `pathways.js`. Up to 3 months = Earn now, up to 12 = Short training, longer = Big moves. Max 8 roles per ring, best match first.
-- The internal strong/stretch/reach `ring` value is still computed in `scoreRole`. It decides which roles are shown and the default role on the Gaps step.
-- Dream path: the dream job always comes from the person, never a preset, including in the demo. First job = the role they chose on the goal step; otherwise the Earn now role that fits the hours and pay limits and has the best skill overlap with the dream job plus match score.
+- Your target rings are based on time, not score: with nothing missing, time = the role's `baseWeeks`; with a credential missing, time = its `months` in `pathways.js`. Up to 3 months = Earn now, up to 12 = Grow, longer = Dream.
+- Target layout: `SLOTS`, `CHIP_AT`, and `RADIUS` in `src/views/target.js` hold max 3 pills per ring, chosen first, then the selected role, then ones that fit a motivation, with one slot kept for a non-matching role when matches would fill the ring; the rest collapse into a "+N more" chip that opens List view. Re-check that pills stay inside their bands if these change.
+- Choices: `state.firstJob` must be in the inner ring, `state.growJob` the middle, `state.dream` the outer; `targetView` clears any that no longer match. Gaps uses `state.selected`, then dream, then first step, then grow.
+- Pay limit: a role only fails on pay if the top of its range is under the minimum. A role that starts under it gets a note in Compare (`note` on the pay check) but no warning.
+- The internal strong/stretch/reach `ring` value is still computed in `scoreRole`. It sets the default role on the Gaps step when nothing is chosen.
+- The dream and first step always come from the person, never a preset, including in the demo.
 - Map coverage: New Jersey only. Riverbend County isn't a real place, so the demo map labels it as made up and keeps its sample pins at real NJ coordinates.
 
 ## Known gaps / TODO
