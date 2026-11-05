@@ -1,15 +1,19 @@
 import { careers } from "./data/careers.js";
 import { credentials } from "./data/credentials.js";
+import { pathways } from "./data/pathways.js";
 
 // The scoring rule is shown to the user, so keep it in one place.
 export const WEIGHTS = { skills: 0.5, constraints: 0.3, interests: 0.2 };
-export const RINGS = {
-  strong: { label: "Strong fit", rule: "You meet every credential requirement and score 60% or higher." },
-  stretch: { label: "Stretch", rule: "You are missing one or two credentials (named below), or score 45% or higher." },
-  reach: { label: "Reach", rule: "Outside your usual lane or a longer path, but your skills and interests still point toward it." }
+// Opportunity Map rings, inner to outer. `maxMonths` decides which ring a role lands in.
+export const HORIZONS = {
+  earn: { label: "Earn now", span: "0–3 months", maxMonths: 3, heading: "Roles that build directly on your record" },
+  train: { label: "Short training", span: "3–12 months", maxMonths: 12, heading: "Roles a short credential can unlock" },
+  big: { label: "Big moves", span: "1–4 years", maxMonths: Infinity, heading: "Longer paths that pay off down the road" }
 };
-const MAX_PER_RING = 5;
+export const HORIZON_ORDER = ["earn", "train", "big"];
+const MAX_PER_RING = 8;
 const ORDER = ["strong", "stretch", "reach"];
+const WEEKS_PER_MONTH = 4.33;
 
 const freeTextRules = [
   [/trade|hands|repair|build|fix|mechanic/i, "mechanical"], [/electric|power/i, "electrical"],
@@ -95,7 +99,42 @@ export function scoreRole(role, profile, today = new Date()) {
   const blocked = checks.filter((c) => c.hard && !c.pass).map((c) => c.label);
   if (ring && blocked.length && ring !== "reach") ring = ORDER[ORDER.indexOf(ring) + 1];
 
-  return { role, ring, total, skills, constraints, interests, matchedSkills, missing, checks, blocked, weeks };
+  const months = missing.length ? pathways[role.id].months : weeks / WEEKS_PER_MONTH;
+  const horizon = HORIZON_ORDER.find((k) => months <= HORIZONS[k].maxMonths);
+
+  return { role, ring, total, skills, constraints, interests, matchedSkills, missing, checks, blocked, weeks, months, horizon };
+}
+
+// Roles grouped by how soon they could pay off (Opportunity Map rings), best fit first.
+export function rankHorizons(profile, today = new Date()) {
+  const out = { earn: [], train: [], big: [] };
+  for (const r of careers) {
+    const s = scoreRole(r, profile, today);
+    if (s.ring) out[s.horizon].push(s);
+  }
+  for (const k of HORIZON_ORDER) out[k] = out[k].sort((a, b) => b.total - a.total).slice(0, MAX_PER_RING);
+  return out;
+}
+
+// short term job -> long-term skill building -> dream job.
+export function buildPath(dreamId, profile, today = new Date()) {
+  const role = careers.find((c) => c.id === dreamId);
+  if (!role) return null;
+  const dream = scoreRole(role, profile, today);
+  const have = new Set(profile.skills);
+  const gaps = role.skills.filter((t) => !have.has(t));
+  const overlap = (s) => s.role.skills.filter((t) => role.skills.includes(t)).length / role.skills.length;
+  const pick = (list) => [...list].sort((a, b) => overlap(b) + b.total - (overlap(a) + a.total))[0] || null;
+
+  // First job: pays soon, fits the user's hard limits if possible, and shares the most with the dream job.
+  const earn = careers.map((c) => scoreRole(c, profile, today))
+    .filter((s) => s.ring && s.horizon === "earn" && s.role.id !== dreamId);
+  const direct = dream.horizon === "earn" && gaps.length === 0;
+  const first = direct ? dream : pick(earn.filter((s) => !s.blocked.length)) || pick(earn);
+  const onTheJob = first ? gaps.filter((t) => first.role.skills.includes(t)) : [];
+  const toTrain = gaps.filter((t) => !onTheJob.includes(t));
+
+  return { dream, first, direct, onTheJob, toTrain, credentials: dream.missing };
 }
 
 export function rankRoles(profile, today = new Date()) {

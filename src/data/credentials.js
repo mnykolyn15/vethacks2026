@@ -51,12 +51,15 @@ export const credentials = {
     firstStep: "Tour or call a local welding program and ask about veteran funding (about 60 min)." },
   gwo_wind: { name: "GWO Basic Safety Training (wind)", cost: "$1,500–$3,000", weeks: 4,
     funding: ["GI Bill", "WIOA via American Job Center", "Employer-sponsored"],
-    firstStep: "Look up GWO training providers and their next cohort dates (about 45 min)." }
+    firstStep: "Look up GWO training providers and their next cohort dates (about 45 min)." },
+  fmp: { name: "Facility Management Professional (FMP)", cost: "$1,500–$3,000", weeks: 26,
+    funding: ["GI Bill (check program approval)", "VR&E if eligible", "Employer-paid at many firms"],
+    firstStep: "Read the FMP course outline and note which topics your experience already covers (about 60 min)." }
 };
 
 // Keywords that mark a credential as already held when found in the confirmed record.
 export const credentialKeywords = {
   epa608: /epa\s*608/i, osha30: /osha\s*[- ]?30/i, comptia_a: /comptia\s*a\+|\ba\+\s*cert/i,
   network_plus: /network\+/i, cdl_a: /\bcdl\b/i, forklift: /forklift/i, emt_cert: /\bemt\b|emergency medical tech/i,
-  capm: /\bcapm\b/i, nabcep_pv: /nabcep/i, weld_cert: /\baws\b.*weld|weld.*cert/i
+  capm: /\bcapm\b/i, nabcep_pv: /nabcep/i, weld_cert: /\baws\b.*weld|weld.*cert/i, fmp: /\bfmp\b|facility management professional/i
 };

@@ -21,5 +21,5 @@ export function gapsView(ctx) {
           h("small", {}, `Likely funding: ${c.funding.join("; ")}`)); }))
       : h("p", {}, "You meet every credential requirement for this role. 🎉"),
     h("p", {}, h("small", {}, "Costs and times are estimates. Check current funding rules with an American Job Center or va.gov.")),
-    h("div", { class: "nav" }, h("button", { class: "secondary", onclick: ctx.back }, "Back to matches"), h("button", { onclick: ctx.next }, "Find in-person help")));
+    h("div", { class: "nav" }, h("button", { class: "secondary", onclick: ctx.back }, "Back to Opportunity Map"), h("button", { onclick: ctx.next }, "Find in-person help")));
 }

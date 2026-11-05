@@ -6,8 +6,14 @@ const r = (id, title, field, lo, hi, hours, commute, skills, interests, handsOn,
   ({ id, title, field, pay: { lo, hi }, hours, commute, skills, interests, handsOn, setting, team, requires, paidTraining: paid, baseWeeks });
 
 export const careers = [
-  r("gen_tech", "Standby Generator Technician", "Power & facilities", 52000, 78000, "days", 20,
+  r("gen_tech", "Power Systems Field Service Technician", "Power & facilities", 52000, 78000, "days", 20,
     ["mechanical", "diagnostics", "maintenance", "electrical", "safety"], ["mechanical", "electrical"], true, "either", "either", [], true, 3),
+  r("data_center_ops", "Data Center Operations Technician", "Technology", 55000, 85000, "mixed", 30,
+    ["electrical", "maintenance", "diagnostics", "documentation", "safety"], ["tech", "electrical"], true, "indoors", "team", [], true, 4),
+  r("maint_planner", "Maintenance Planner / Scheduler", "Power & facilities", 58000, 85000, "days", 20,
+    ["maintenance", "projectmgmt", "documentation", "supervision", "safety"], ["mechanical", "leading", "logistics"], false, "indoors", "either", [], true, 4),
+  r("facilities_manager", "Facilities Manager", "Power & facilities", 85000, 130000, "days", 25,
+    ["supervision", "projectmgmt", "maintenance", "documentation", "safety"], ["leading", "mechanical"], false, "indoors", "team", ["fmp"], false, 8),
   r("diesel_tech", "Diesel Mechanic (Fleet)", "Transportation", 50000, 80000, "days", 25,
     ["mechanical", "diagnostics", "maintenance", "safety"], ["mechanical"], true, "indoors", "either", [], true, 3),
   r("facilities_tech", "Facilities Maintenance Technician", "Power & facilities", 48000, 72000, "days", 15,
