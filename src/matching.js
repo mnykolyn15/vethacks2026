@@ -16,6 +16,37 @@ const MAX_PER_RING = 8;
 const ORDER = ["strong", "stretch", "reach"];
 const WEEKS_PER_MONTH = 4.33;
 
+// ---- Answer helpers ----
+export const IMPORTANCE = { strong: 3, medium: 2, low: 1 };
+const weightOf = (q, key) => IMPORTANCE[q.importance?.[key]] ?? IMPORTANCE.medium;
+
+// What each questionnaire choice says about the person's interests (tags match careers.js `interests`).
+const WORK_TAGS = {
+  physical: ["mechanical", "electrical"], build: ["mechanical", "electrical", "outdoors"], technical: ["tech", "data"],
+  planning: ["logistics", "leading"], teaching: ["people", "leading"], customer: ["people"]
+};
+const MOMENT_TAGS = {
+  puzzle: ["mechanical", "electrical", "tech", "data"], pressure: ["mechanical", "electrical", "security", "medical"],
+  result: ["mechanical", "electrical", "outdoors"], teaching: ["people", "leading"], people: ["people", "leading", "medical"],
+  operation: ["logistics", "leading"], trusted: ["leading", "security"], learning: [], exact: ["data", "mechanical"],
+  bigger: ["security", "people", "medical"], easier: ["people", "medical"]
+};
+const HANDS_ON = new Set(["physical", "build"]);
+// Roles where the work happens at changing sites (driving to jobs) rather than one place every day.
+const MOBILE = new Set(["gen_tech", "hvac_tech", "solar_tech", "industrial_electrician", "elevator", "wind_tech", "cdl_driver", "heavy_equip", "emt", "police"]);
+// Roles paid a yearly salary; the rest are compared on an hourly rate.
+const SALARIED = new Set(["project_coord", "safety_coord", "maint_supervisor", "maint_planner", "facilities_manager", "hr_generalist", "data_analyst", "network_admin", "police"]);
+
+// How a role feels day to day: derived from its hours, skills, and interests.
+function rolePace(role) {
+  const pace = new Set();
+  if (role.hours === "days" && role.skills.some((t) => ["maintenance", "documentation"].includes(t))) pace.add("routine");
+  if (role.skills.includes("diagnostics")) pace.add("problems");
+  if (role.hours !== "days" || role.interests.some((t) => ["medical", "security"].includes(t))) pace.add("pressure");
+  if (role.skills.some((t) => ["projectmgmt", "construction"].includes(t))) pace.add("project");
+  return pace;
+}
+
 const freeTextRules = [
   [/trade|hands|repair|build|fix|mechanic/i, "mechanical"], [/electric|power/i, "electrical"],
   [/computer|\bit\b|tech\b|software/i, "tech"], [/people|help|care|teach/i, "people"],
@@ -23,12 +54,18 @@ const freeTextRules = [
   [/data|analy/i, "data"], [/truck|driv|warehouse|logistic/i, "logistics"]
 ];
 
-// "What are you looking for?" -> extra interest tags and a days-only hint.
+// "Anything else?" -> extra interest tags and a days-only hint.
 export function freeTextSignals(text = "") {
   const interests = [...new Set(freeTextRules.filter(([re]) => re.test(text)).map(([, t]) => t))];
   const daysOnly = /daytime|days only|no nights|no night|9.?to.?5|weekdays/i.test(text);
   const notes = [...interests.map((t) => `interest: ${t}`), daysOnly && "daytime hours only"].filter(Boolean);
   return { interests, daysOnly, notes };
+}
+
+// Daytime only = chose "Daytime only" and didn't say evenings, nights, or rotating shifts are fine (or said so in their own words).
+export function daytimeOnly(q) {
+  const h = q.hours || [];
+  return (h.includes("days") && !h.includes("evenings") && !h.includes("rotating")) || freeTextSignals(q.freeText).daysOnly;
 }
 
 export function weeksUntil(dateStr, today = new Date()) {
@@ -38,7 +75,15 @@ export function weeksUntil(dateStr, today = new Date()) {
 }
 
 const avg = (xs) => xs.reduce((a, b) => a + b, 0) / (xs.length || 1);
+const wavg = (items) => items.reduce((a, [v, w]) => a + v * w, 0) / (items.reduce((a, [, w]) => a + w, 0) || 1);
 const money = (n) => `$${Math.round(n).toLocaleString()}`;
+const NEUTRAL = 1; // an unanswered question never counts against a role
+
+// Share of the role's interest tags the person has shown interest in.
+function overlap(role, tagCounts) {
+  if (!role.interests.length) return NEUTRAL;
+  return role.interests.reduce((sum, t) => sum + Math.min(1, (tagCounts.get(t) || 0) / 2), 0) / role.interests.length;
+}
 
 export function scoreRole(role, profile, today = new Date()) {
   const q = profile.answers;
@@ -51,45 +96,88 @@ export function scoreRole(role, profile, today = new Date()) {
   const missing = role.requires.filter((c) => !held.has(c));
   const maxWeeks = Math.max(0, ...missing.map((c) => credentials[c].weeks));
 
-  const needDays = q.daysOnly || q.childcare || sig.daysOnly;
-  const hourlyLo = role.pay.lo / 2080;
-  const hourlyHi = role.pay.hi / 2080;
+  const days = daytimeOnly(q);
+  const nights = (q.hours || []).includes("evenings") || (q.hours || []).includes("rotating");
+  const salaried = SALARIED.has(role.id);
+  const lo = salaried ? role.pay.lo : role.pay.lo / 2080;
+  const hi = salaried ? role.pay.hi : role.pay.hi / 2080;
+  const need = Number(salaried ? q.minSalary : q.minHourly) || 0;
+  const unit = salaried ? "/yr salary" : "/hr";
+  const fmt = (n) => (salaried ? money(n) : `$${n.toFixed(0)}`);
   const available = weeksUntil(q.incomeBy, today);
   const weeks = role.baseWeeks + maxWeeks;
-  const eduLimit = { none: 0, short: 12, long: 104 }[q.education] ?? 12;
+  const eduLimit = { none: 0, short: 12, long: 104, any: 104 }[q.education] ?? 12;
+  const eduName = { none: "no classes", short: "short courses", long: "longer programs", any: "any amount of training" }[q.education] || "short courses";
 
-  const hoursOk = !needDays || role.hours === "days";
+  // Each check carries the importance of the question it came from. "Strong" checks are deal-breakers.
+  const hoursOk = !days || role.hours === "days";
+  const shiftsOk = role.hours !== "shifts" || nights || !(q.hours || []).length;
+  const hoursPass = hoursOk && shiftsOk;
+  const timingImportance = q.needsHelp === "yes" ? "strong" : q.importance?.timing;
+  const flexMiles = Number(q.commuteFlex) || 0;
   const commuteOk = role.commute <= q.commuteMiles;
-  const payOk = hourlyLo >= q.minPay;
+  const withinFlex = !commuteOk && role.commute <= q.commuteMiles + flexMiles;
+  const payOk = lo >= need;
   const checks = [
-    { key: "hours", label: "Hours", hard: true, pass: hoursOk, score: hoursOk ? 1 : role.hours === "mixed" ? 0.4 : 0,
-      detail: `${role.hours === "days" ? "Daytime" : role.hours === "mixed" ? "Mostly days, some on-call" : "Nights / rotating shifts"}${needDays ? " (you need days only)" : ""}` },
-    { key: "distance", label: "Distance", pass: commuteOk,
-      score: commuteOk || q.relocate === "yes" ? 1 : Math.max(0, q.commuteMiles / role.commute),
-      detail: `Employers about ${role.commute} mi away (your limit: ${q.commuteMiles} mi)` },
-    { key: "timing", label: "Income timing", pass: weeks <= available, score: Math.min(1, available / weeks),
+    { key: "hours", label: "Hours", pass: hoursPass, weight: weightOf(q, "hours"), strong: q.importance?.hours === "strong",
+      score: hoursPass ? 1 : role.hours === "mixed" ? 0.4 : 0,
+      detail: `${role.hours === "days" ? "Daytime" : role.hours === "mixed" ? "Mostly days, some on-call" : "Nights / rotating shifts"}${days ? " (you want days only)" : ""}` },
+    { key: "distance", label: "Distance", pass: commuteOk || withinFlex, weight: weightOf(q, "commute"), strong: q.importance?.commute === "strong",
+      score: commuteOk || q.relocate === "yes" ? 1 : withinFlex ? 0.85 : Math.max(0, q.commuteMiles / role.commute),
+      detail: `Employers about ${role.commute} mi away (your limit: ${q.commuteMiles} mi${flexMiles ? `, up to ${flexMiles} more for a better job` : ""})` },
+    { key: "timing", label: "Income timing", pass: weeks <= available, weight: IMPORTANCE[timingImportance] ?? 2, strong: timingImportance === "strong",
+      score: Math.min(1, available / weeks),
       detail: `About ${weeks} weeks to first paycheck; you need income in ~${available} weeks` },
-    { key: "pay", label: "Pay", hard: true, pass: payOk, score: payOk ? 1 : hourlyHi >= q.minPay ? 0.6 : 0.2,
-      detail: `${money(role.pay.lo)}–${money(role.pay.hi)}/yr (~$${hourlyLo.toFixed(0)}–$${hourlyHi.toFixed(0)}/hr); your minimum is $${q.minPay}/hr` }
+    { key: "pay", label: "Pay", pass: payOk, weight: weightOf(q, "pay"), strong: q.importance?.pay === "strong",
+      score: !need || payOk ? 1 : hi >= need ? 0.6 : 0.2,
+      detail: `${money(role.pay.lo)}–${money(role.pay.hi)}/yr (${salaried ? "salaried" : `about $${(role.pay.lo / 2080).toFixed(0)}–$${(role.pay.hi / 2080).toFixed(0)}/hr`}); your minimum is ${need ? fmt(need) : "not set"}${need ? unit : ""}` }
   ];
   if (q.wantsPaidTraining) {
     const ok = missing.length === 0 || role.paidTraining;
-    checks.push({ key: "training", label: "Paid training", pass: ok, score: ok ? 1 : 0.3,
+    checks.push({ key: "training", label: "Paid training", pass: ok, weight: weightOf(q, "training"), strong: q.importance?.training === "strong", score: ok ? 1 : 0.3,
       detail: ok ? (missing.length ? "Employers or apprenticeships pay while you train" : "No training needed to start") : "You would pay for training yourself" });
   }
   const eduOk = maxWeeks <= eduLimit;
-  checks.push({ key: "education", label: "Classes", pass: eduOk, score: eduOk ? 1 : 0.4,
-    detail: missing.length ? `Longest credential takes ~${maxWeeks} weeks (you are open to ${q.education === "none" ? "no classes" : q.education === "short" ? "short courses" : "longer programs"})` : "No classes needed" });
-  const constraints = avg(checks.map((c) => c.score));
+  checks.push({ key: "education", label: "Classes", pass: eduOk, weight: weightOf(q, "education"), strong: q.importance?.education === "strong", score: eduOk ? 1 : 0.4,
+    detail: missing.length ? `Longest credential takes ~${maxWeeks} weeks (you are open to ${eduName})` : "No classes needed" });
+  const constraints = wavg(checks.map((c) => [c.score, c.weight]));
 
-  const wanted = new Set([...q.interests, ...sig.interests]);
-  const overlap = role.interests.filter((t) => wanted.has(t)).length / (role.interests.length || 1);
-  const style = avg([
-    q.handsOn === "either" || q.handsOn === (role.handsOn ? "hands-on" : "desk") ? 1 : 0.2,
-    q.setting === "either" || role.setting === "either" || q.setting === role.setting ? 1 : 0.2,
-    q.social === "either" || role.team === "either" || q.social === role.team ? 1 : 0.2
-  ]);
-  const interests = 0.7 * overlap + 0.3 * style;
+  // Interests: five questions, each weighted by how much it matters to the person.
+  const tags = new Map();
+  const bump = (list) => list.forEach((t) => tags.set(t, (tags.get(t) || 0) + 1));
+  (q.workTypes || []).forEach((k) => bump(WORK_TAGS[k] || []));
+  sig.interests.forEach((t) => bump([t]));
+  const momentTags = new Map();
+  (q.moments || []).forEach((k) => (MOMENT_TAGS[k] || []).forEach((t) => momentTags.set(t, (momentTags.get(t) || 0) + 1)));
+
+  const picked = q.workTypes || [];
+  const wantsHands = picked.some((k) => HANDS_ON.has(k));
+  const wantsDesk = picked.some((k) => !HANDS_ON.has(k));
+  const handsFit = !picked.length || (wantsHands && wantsDesk) || (wantsHands === role.handsOn) ? NEUTRAL : 0.3;
+  const workFit = picked.length || sig.interests.length ? 0.7 * overlap(role, tags) + 0.3 * handsFit : NEUTRAL;
+  const momentFit = (q.moments || []).length ? overlap(role, momentTags) : NEUTRAL;
+
+  const where = (q.where || []).filter((w) => w !== "none");
+  const siteWants = where.filter((w) => w === "same" || w === "different");
+  const settingWants = where.filter((w) => ["indoors", "outdoors", "office"].includes(w));
+  const mobile = MOBILE.has(role.id);
+  const siteOk = !siteWants.length || siteWants.includes(mobile ? "different" : "same");
+  const settingOk = !settingWants.length || settingWants.some((w) =>
+    (w === "indoors" && role.setting !== "outdoors") || (w === "outdoors" && role.setting !== "indoors") || (w === "office" && role.setting === "indoors" && !role.handsOn));
+  const whereFit = avg([siteOk ? 1 : 0.3, settingOk ? 1 : 0.3]);
+
+  const ppl = (q.people || []).filter((p) => p !== "mix");
+  const peopleOk = !ppl.length || (q.people || []).includes("mix") || ppl.some((p) =>
+    (p === "alone" && role.team !== "team") || (p === "crew" && role.team !== "solo") ||
+    (p === "lead" && (role.interests.includes("leading") || role.skills.includes("supervision"))) ||
+    (p === "customers" && (role.skills.includes("customer") || role.interests.includes("people"))));
+  const peopleFit = peopleOk ? 1 : 0.3;
+
+  const pace = rolePace(role);
+  const paceFit = !(q.pace || []).length || q.pace.some((p) => pace.has(p)) ? 1 : 0.4;
+
+  const interests = wavg([[workFit, weightOf(q, "work")], [momentFit, weightOf(q, "moments")], [whereFit, weightOf(q, "where")],
+    [peopleFit, weightOf(q, "people")], [paceFit, weightOf(q, "pace")]]);
 
   const total = WEIGHTS.skills * skills + WEIGHTS.constraints * constraints + WEIGHTS.interests * interests;
 
@@ -97,7 +185,7 @@ export function scoreRole(role, profile, today = new Date()) {
   if (missing.length === 0 && total >= 0.6) ring = "strong";
   else if (missing.length <= 2 && total >= 0.45) ring = "stretch";
   else if (total >= 0.3) ring = "reach";
-  const blocked = checks.filter((c) => c.hard && !c.pass).map((c) => c.label);
+  const blocked = checks.filter((c) => c.strong && !c.pass).map((c) => c.label);
   if (ring && blocked.length && ring !== "reach") ring = ORDER[ORDER.indexOf(ring) + 1];
 
   const months = missing.length ? pathways[role.id].months : weeks / WEEKS_PER_MONTH;

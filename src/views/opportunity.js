@@ -1,6 +1,6 @@
 import { h } from "../dom.js";
 import { state, profile } from "../state.js";
-import { rankRoles, rankHorizons, buildPath, scoreRole, fitSummary, HORIZONS, HORIZON_ORDER, WEIGHTS } from "../matching.js";
+import { rankRoles, rankHorizons, buildPath, scoreRole, fitSummary, daytimeOnly, HORIZONS, HORIZON_ORDER, WEIGHTS } from "../matching.js";
 import { careers } from "../data/careers.js";
 import { credentials } from "../data/credentials.js";
 import { pathways } from "../data/pathways.js";
@@ -42,7 +42,7 @@ export function opportunityView(ctx) {
   if (!state.selected && top) state.selected = top.role.id;
   const scoreOf = (id) => scoreRole(careers.find((c) => c.id === id), prof);
   const by = earnBy(state.answers.incomeBy);
-  const needDays = state.answers.daysOnly || state.answers.childcare;
+  const needDays = daytimeOnly(state.answers);
   const leads = {
     earn: `${needDays ? "Day-shift work" : "Work"} that can get you paid ${by} and build civilian experience.`,
     train: "Worth a few months of training: one credential can open these doors.",

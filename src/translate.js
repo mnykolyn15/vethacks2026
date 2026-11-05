@@ -1,4 +1,5 @@
 import { credentialKeywords } from "./data/credentials.js";
+import { codes, lookupCode, billetInfo, isLeadershipGrade } from "./data/military.js";
 
 export const skillLabels = {
   mechanical: "Mechanical repair", electrical: "Electrical systems", diagnostics: "Troubleshooting & diagnostics",
@@ -30,26 +31,9 @@ const rules = [
   { tag: "customer", re: /customer|brief(?:ed|ing)|liaison|counsel|advis/i, phrase: () => "Briefed and advised stakeholders" }
 ];
 
-// Typical duties per MOS, used ONLY when the record has no duty lines (flagged as inferred in the UI).
-export const mosDuties = {
-  "91D": ["Troubleshoot and repair generators and power plants", "Perform preventive maintenance checks and services (PMCS)", "Maintain tool and equipment accountability"],
-  "11B": ["Led teams through high-stakes operations", "Planned and briefed missions to stakeholders"],
-  "68W": ["Provided emergency patient care and triage", "Maintained patient records and medical supplies"],
-  "25B": ["Installed and maintained networks and computers", "Resolved user tickets and enforced information security"],
-  "92Y": ["Managed inventory and equipment accountability", "Processed supply requests and distribution"],
-  "88M": ["Operated heavy trucks in convoys", "Performed preventive maintenance on vehicles"],
-  "35F": ["Analyzed data and produced reports for leadership", "Briefed leaders on trends and risks"],
-  "12B": ["Supervised construction projects", "Operated heavy equipment and coordinated crews"],
-  "31B": ["Enforced regulations and responded to incidents", "Conducted investigations and wrote reports"],
-  "42A": ["Managed personnel records and actions", "Advised staff on benefits and entitlements"]
-};
-mosDuties["52D"] = mosDuties["91D"]; // people may still have 52D on their records
-
-export const mosTitles = {
-  "91D": "Power Generation Equipment Repairer", "52D": "Power Generation Equipment Repairer", "11B": "Infantryman", "68W": "Combat Medic Specialist",
-  "25B": "Information Technology Specialist", "92Y": "Unit Supply Specialist", "88M": "Motor Transport Operator",
-  "35F": "Intelligence Analyst", "12B": "Combat Engineer", "31B": "Military Police", "42A": "Human Resources Specialist"
-};
+// Typical duties and titles per code (see data/military.js), used ONLY when the record has no tasks or billets.
+export const mosDuties = Object.fromEntries(codes.map((c) => [c.code, c.duties]));
+export const mosTitles = Object.fromEntries(codes.map((c) => [c.code, c.title]));
 
 // Everyday words people use when adding a skill themselves, beyond the record-oriented rules above.
 const addedSkillRules = [
@@ -69,13 +53,23 @@ export function tagsForSkill(text) {
 const clean = (s) => s.replace(/^[•\-*·▪◦\s]+/, "").replace(/[.;\s]+$/, "");
 const number = (s) => (s.match(/\b(\d{1,4})\b/) || [])[1];
 
-// Turn a confirmed JST record into civilian skills with evidence + a copy-ready resume line each.
+// Turn a confirmed record into civilian skills with evidence + a copy-ready resume line each.
 export function translate(jst) {
   const sources = [];
   for (const job of jst.jobs) {
-    const duties = job.duties.filter(Boolean);
-    if (duties.length) duties.forEach((d) => sources.push({ text: d, from: job.title || job.code, inferred: false }));
-    else for (const d of mosDuties[(job.code || "").toUpperCase()] || []) sources.push({ text: d, from: job.title || job.code, inferred: true });
+    const from = job.title || job.code;
+    const typical = lookupCode(job.code)?.duties || [];
+    const tasks = (job.duties || []).filter(Boolean);
+    const held = (job.billets || []).filter(Boolean);
+    // Billets say what position someone held; use what that position typically involves as evidence.
+    for (const b of held) sources.push({ text: billetInfo(b)?.does || `Served as ${b}`, from: `Billet: ${b}`, inferred: false });
+    tasks.forEach((d) => sources.push({ text: d, from, inferred: false }));
+    if (isLeadershipGrade(job.grade)) sources.push({ text: `Held a leadership grade (${job.grade}), responsible for supervising others`, from: "Pay grade", inferred: true });
+    if (!tasks.length && !held.length) {
+      // No tasks or billets: use typical tasks if we have them, otherwise the code's title and the civilian jobs it lines up with.
+      const fallback = typical.length ? typical : [job.title, ...(job.civilian || [])].filter(Boolean);
+      for (const d of fallback) sources.push({ text: d, from, inferred: true });
+    }
   }
   for (const c of jst.courses) sources.push({ text: c.name, from: "Course", inferred: false });
 
