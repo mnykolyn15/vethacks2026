@@ -1,5 +1,5 @@
 import { h } from "./dom.js";
-import { state, jordan, defaultAnswers } from "./state.js";
+import { state, resetState, jordan, defaultAnswers } from "./state.js";
 import { intakeView } from "./views/intake.js";
 import { questionnaireView } from "./views/questionnaire.js";
 import { skillsView } from "./views/skills.js";
@@ -24,26 +24,23 @@ function go(i) {
   window.scrollTo(0, 0);
 }
 
+// Jordan Lee, the made-up demo veteran: every step starts filled in, beginning at Step 1.
 function loadJordan() {
+  resetState();
+  state.demo = true;
   state.jst = structuredClone(jordan.jst);
   state.answers = { ...defaultAnswers(), ...structuredClone(jordan.answers) };
   state.answersDone = true;
-  state.selected = null;
   state.location = jordan.location;
   state.extraSkills = [...jordan.extraSkills];
-  state.uncheckedSkills = [];
-  // Jordan makes these choices on the Your target step.
-  state.motivations = [];
-  state.motivationsEdited = false;
-  state.firstJob = null;
-  state.growJob = null;
-  state.dream = null;
-  state.dreamNote = "";
-  state.apprenticeship = "all";
-  state.compare = [];
-  state.targetRole = null;
-  state.targetView = "target";
-  go(2); // start at the skills so the demo walks through choosing a target
+  Object.assign(state, structuredClone(jordan.target)); // first job, grow step, dream job, note, comparison
+  go(0);
+}
+
+// Back to a blank start, to show the generic workflow.
+function startOver() {
+  resetState();
+  go(0);
 }
 
 function render() {
@@ -55,7 +52,10 @@ function render() {
   root.replaceChildren(
     h("header", {}, h("h1", {}, "Veterans Build America"),
       h("p", {}, "From your service record to your target, gaps to close, one action this week, and help nearby."),
-      h("button", { class: "demo", onclick: loadJordan }, "Load demo: Jordan Lee")),
+      state.demo ? h("p", { class: "demo-banner" }, "Demo: Jordan Lee, a made-up veteran. Every step is filled in.") : null,
+      h("div", { class: "header-actions" },
+        h("button", { class: "demo", onclick: loadJordan }, "Load demo: Jordan Lee"),
+        h("button", { class: "demo", onclick: startOver }, "Start over"))),
     nav, h("main", {}, steps[current].view(ctx)));
 }
 render();

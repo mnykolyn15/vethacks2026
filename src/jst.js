@@ -1,7 +1,7 @@
 // Heuristic JST and resume text parsers. Parsing WILL make mistakes, so the UI always shows the
 // result for the user to confirm or fix. Privacy: identifiers are redacted before anything is
 // parsed, and only the structured data below is kept (no names, dates, or credit recommendations).
-import { lookupCode, normalizeCode } from "./data/military.js";
+import { lookupCode, normalizeCode, billets as knownBillets } from "./data/military.js";
 
 export function redact(text) {
   return text
@@ -133,6 +133,9 @@ export function parseResume(rawText, knownCodes = []) {
       } else if (BULLET.test(line) || DUTY.test(body)) {
         if (!current || pending) startJob(pending);
         current.duties.push(body);
+        // A billet named in a bullet ("Served as Team Leader...") is recorded as a billet too.
+        const billet = knownBillets.find((b) => new RegExp(`\\b${b.title.split(" / ")[0]}\\b`, "i").test(body));
+        if (billet && !current.billets.includes(billet.title)) current.billets.push(billet.title);
       } else {
         pending = line;
       }
