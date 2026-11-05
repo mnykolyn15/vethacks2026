@@ -1,9 +1,10 @@
 import { h } from "../dom.js";
 import { places, placeTypes } from "../data/places.js";
+import { state } from "../state.js";
 
 const LEAFLET_JS = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
 const LEAFLET_CSS = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-const DEFAULT_HOME = { lat: 40.9168, lng: -74.1718 }; // northern New Jersey (demo)
+const DEFAULT_HOME = { lat: 40.9168, lng: -74.1718 }; // demo starting point in New Jersey
 
 const miles = (a, b) => {
   const R = 3958.8, rad = (d) => (d * Math.PI) / 180;
@@ -49,7 +50,7 @@ export function mapView(ctx) {
     navigator.geolocation?.getCurrentPosition((pos) => {
       home = { lat: pos.coords.latitude, lng: pos.coords.longitude };
       map?.setView([home.lat, home.lng], 10); draw();
-    }, () => (status.textContent = "Couldn't get your location; showing northern New Jersey."));
+    }, () => (status.textContent = "Couldn't get your location; showing the demo area in New Jersey."));
   } }, "Use my location");
 
   Promise.all([loadScript(LEAFLET_JS), document.head.append(h("link", { rel: "stylesheet", href: LEAFLET_CSS }))]).then(() => {
@@ -62,6 +63,7 @@ export function mapView(ctx) {
   draw();
   return h("section", {},
     h("h2", {}, "In-person help near you"),
+    state.location ? h("p", { class: "rule" }, `Demo location: ${state.location}. This county is made up for the demo, and the pins are sample data.`) : null,
     h("p", { class: "privacy" }, "⚠️ Verify hours and phone numbers before you go. Locations should come from the official VA facility locator and the Department of Labor American Job Center directory."),
     h("p", {}, "Official lookup: ",
       h("a", { href: "https://www.va.gov/find-locations/", target: "_blank", rel: "noopener" }, "VA facility locator"), " · ",

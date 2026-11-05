@@ -99,6 +99,11 @@ export function intakeView(ctx) {
         certs: lines("certs")
       };
       state.extraSkills = [...new Set(lines("extra"))];
+      state.uncheckedSkills = []; // a new record means new skills to review
+      state.location = null; // not the demo veteran anymore
+      state.dream = null;
+      state.firstJob = null;
+      state.dreamNote = "";
       ctx.next();
     });
     confirmBox.replaceChildren(h("h3", {}, "Check what we found"),
@@ -133,7 +138,7 @@ export function intakeView(ctx) {
   }
 
   function mosPanel() {
-    const input = h("input", { id: "mos-code", list: "mos-list", autocomplete: "off", placeholder: "For example, 52D" });
+    const input = h("input", { id: "mos-code", list: "mos-list", autocomplete: "off", placeholder: "For example, 91D" });
     const list = h("datalist", { id: "mos-list" }, Object.entries(mosTitles).map(([code, title]) => h("option", { value: code }, title)));
     return h("form", { onsubmit: (e) => {
       e.preventDefault();

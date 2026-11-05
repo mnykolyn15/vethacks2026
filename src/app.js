@@ -3,6 +3,7 @@ import { state, jordan, defaultAnswers } from "./state.js";
 import { intakeView } from "./views/intake.js";
 import { questionnaireView } from "./views/questionnaire.js";
 import { skillsView } from "./views/skills.js";
+import { goalView } from "./views/goal.js";
 import { opportunityView } from "./views/opportunity.js";
 import { gapsView } from "./views/gaps.js";
 import { mapView } from "./views/map.js";
@@ -11,6 +12,7 @@ const steps = [
   { label: "Background", view: intakeView },
   { label: "Questions", view: questionnaireView, needs: () => state.jst },
   { label: "Skills", view: skillsView, needs: () => state.jst },
+  { label: "Your goal", view: goalView, needs: () => state.jst && state.answersDone },
   { label: "Opportunity Map", view: opportunityView, needs: () => state.jst && state.answersDone },
   { label: "Gaps", view: gapsView, needs: () => state.jst && state.answersDone },
   { label: "Help nearby", view: mapView }
@@ -29,11 +31,15 @@ function loadJordan() {
   state.answers = { ...defaultAnswers(), ...structuredClone(jordan.answers) };
   state.answersDone = true;
   state.selected = null;
-  state.extraSkills = [];
-  state.dream = jordan.dream;
+  state.location = jordan.location;
+  state.extraSkills = [...jordan.extraSkills];
+  state.uncheckedSkills = [];
+  state.dream = null; // Jordan chooses on the goal step
+  state.firstJob = null;
+  state.dreamNote = "";
   state.compare = [];
   state.horizon = "earn";
-  go(3);
+  go(2); // start at the skills so the demo walks through the goal question
 }
 
 function render() {
