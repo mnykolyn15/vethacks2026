@@ -21,7 +21,7 @@ cd vethacks2026
 python3 serve.py
 ```
 
-Open http://localhost:8000 and click **Load demo: Jordan Lee** to start at the Skills step with Jordan's data filled in.
+Open http://localhost:8000 and click **Load demo: Jordan Lee**. It starts at Step 1 with everything filled in for Jordan: the sample resume (`samples/jordan-lee-resume.txt`), JST (`samples/jordan-lee-jst.pdf`), and code 91D, the confirmed record, all the questions, the skills, and Jordan's target choices (first step, grow step, dream job, note, comparison), so every step can be shown without typing. **Start over** (next to it) returns to a blank slate to show the generic workflow. Jordan's data lives in `jordan` in `src/state.js`.
 
 - Cloning over SSH needs an SSH key added to your GitHub account (https://github.com/settings/ssh/new). Otherwise clone with `https://github.com/saanikak/vethacks2026.git`.
 - Serve over HTTP rather than opening `index.html` directly: ES modules are blocked on `file://` URLs.
@@ -79,7 +79,7 @@ It keeps Army, Marine Corps, Air Force, Space Force, Navy, and Coast Guard codes
 - Choices: `state.firstJob` must be in the inner ring, `state.growJob` the middle, `state.dream` the outer; `targetView` clears any that no longer match. Gaps uses `state.selected`, then dream, then first step, then grow.
 - Pay limit: a role only fails on pay if the top of its range is under the minimum. A role that starts under it gets a note in Compare (`note` on the pay check) but no warning.
 - The internal strong/stretch/reach `ring` value is still computed in `scoreRole`. It sets the default role on the Gaps step when nothing is chosen.
-- The dream and first step always come from the person, never a preset, including in the demo.
+- Choices on Your target come from the person, with one exception: in the demo, Jordan's first step, grow step, dream job, and note are preset (`jordan.target` in `src/state.js`) so every step is populated. Confirming Step 1 again keeps them in the demo, and outside the demo it keeps them unless the record changed.
 - Map coverage: New Jersey only. Riverbend County isn't a real place, so the demo map labels it as made up and keeps its sample pins at real NJ coordinates.
 
 ## Known gaps / TODO

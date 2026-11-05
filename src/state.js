@@ -19,7 +19,7 @@ export const defaultAnswers = () => ({
 // Jordan Lee: the made-up demo veteran from the feature list (entered by hand, no parsing).
 export const jordan = {
   jst: {
-    jobs: [{ code: "91D", title: "Power Generation Equipment Repairer", grade: "E-5", billets: ["Team Leader"], duties: [
+    jobs: [{ code: "91D", title: "Power Generation Equipment Repairer", grade: "E-5", branch: "Army", civilian: [], billets: ["Team Leader"], duties: [
       "Troubleshot and repaired diesel generator sets and power plants",
       "Led 4 repairers in daily maintenance and repair operations",
       "Performed preventive maintenance checks and services (PMCS) on 30 generators",
@@ -36,17 +36,24 @@ export const jordan = {
     commuteMiles: 30, commuteFlex: 10, relocate: "no", incomeBy: "2027-01-31", needsHelp: "no",
     minHourly: 25, minSalary: 52000, education: "short", hoursPerWeek: 5,
     freeText: "A paid trade with daytime hours, close to home." },
+  // What Jordan picks on the Your target step, so every step is filled in for the demo.
+  target: { firstJob: "gen_tech", growJob: "hvac_tech", dream: "industrial_electrician",
+    dreamNote: "Run my own shop someday, and be home by 5.", compare: ["gen_tech", "industrial_electrician"], targetRole: "industrial_electrician" },
   location: "Riverbend County, NJ", // made-up county, like Jordan
   // Skills from life outside the record. Jordan can uncheck or remove them like any other skill.
   extraSkills: ["Household budgeting and logistics as a single parent", "Carpentry and custom furniture building"]
 };
 
-export const state = {
-  jst: null, location: null, extraSkills: [], uncheckedSkills: [], answers: defaultAnswers(), answersDone: false, selected: null,
+const freshState = () => ({
+  demo: false, jst: null, location: null, extraSkills: [], uncheckedSkills: [], answers: defaultAnswers(), answersDone: false, selected: null,
   // Your target: what the person chose. Gaps, Compare, and any later screen read these.
   motivations: [], motivationsEdited: false, firstJob: null, growJob: null, dream: null, dreamNote: "",
   apprenticeship: "all", compare: [], targetRole: null, targetView: "target"
-};
+});
+
+// One shared object that every step reads. `resetState` returns it to a blank start (the generic workflow).
+export const state = freshState();
+export const resetState = () => Object.assign(state, freshState());
 
 export function profile() {
   const skills = (state.jst ? translate(state.jst) : [])

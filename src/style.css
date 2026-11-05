@@ -285,3 +285,8 @@ button.choose.on { background: #fff; color: var(--navy); border: 2px solid var(-
 .path-step.empty:last-child:not(:first-child) .eyebrow { color: #7a4800; }
 .tgt-path-actions { margin-top: 1rem; }
 .tgt-more-options { margin: 1rem 0; } .tgt-more-options summary { cursor: pointer; color: var(--navy); font-weight: 600; min-height: 44px; display: flex; align-items: center; }
+
+/* Demo controls */
+.header-actions { display: flex; gap: .5rem; justify-content: center; flex-wrap: wrap; }
+.header-actions button.demo { margin: .6rem 0 0; }
+.demo-banner { display: inline-block; background: #ffffff26; border-radius: 99px; padding: .15rem .8rem; font-weight: 600; }

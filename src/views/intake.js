@@ -11,6 +11,7 @@ const TESSERACT = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.mi
 const MAMMOTH = "https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js";
 const DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 const SAMPLE_JST = "samples/jordan-lee-jst.pdf";
+const SAMPLE_RESUME = "samples/jordan-lee-resume.txt";
 
 function loadScript(src) {
   return new Promise((resolve, reject) => {
@@ -186,11 +187,18 @@ export function intakeView(ctx) {
       e.preventDefault();
       const jobs = cards.map((c) => c.get()).filter((j) => j.code || j.title || j.billets.length || j.duties.length);
       if (!jobs.length) { error.textContent = "Add at least one job: a code, a title, or what you did."; return; }
-      state.jst = { jobs, courses: courses.get().map((name) => ({ name })), certs: certs.get() };
-      state.extraSkills = extra.get();
-      state.uncheckedSkills = []; // a new record means new skills to review
-      state.location = null; // not the demo veteran anymore
-      Object.assign(state, { motivations: [], motivationsEdited: false, firstJob: null, growJob: null, dream: null, dreamNote: "", compare: [], targetRole: null, selected: null });
+      const record = { jobs, courses: courses.get().map((name) => ({ name })), certs: certs.get() };
+      const skills = extra.get();
+      // A different record means new skills to review and new choices to make. Confirming the same record again
+      // (or confirming in the demo) keeps what the person already picked.
+      const changed = JSON.stringify([state.jst, state.extraSkills]) !== JSON.stringify([record, skills]);
+      state.jst = record;
+      state.extraSkills = skills;
+      if (changed && !state.demo) {
+        state.uncheckedSkills = [];
+        state.location = null; // not the demo veteran anymore
+        Object.assign(state, { motivations: [], motivationsEdited: false, firstJob: null, growJob: null, dream: null, dreamNote: "", compare: [], targetRole: null, selected: null });
+      }
       ctx.next();
     } },
       jobsBox,
@@ -291,5 +299,25 @@ export function intakeView(ctx) {
     status, confirmBox,
     h("p", { class: "hint source-note" }, "Code data: Defense Manpower Data Center military crosswalk, published by the O*NET Resource Center (onetcenter.org)."));
   for (const el of [resumeFile, jstFile, resumePaste, jstPaste, codeInput]) { el.addEventListener("change", refresh); el.addEventListener("input", refresh); }
+
+  // Coming back with a record already confirmed (the demo, or someone's own earlier answers): show it filled in.
+  // The demo also fills the three sources with Jordan's sample resume, JST, and code.
+  if (state.jst) {
+    const record = { jobs: state.jst.jobs, courses: state.jst.courses, certs: state.jst.certs, skills: state.extraSkills };
+    loadCodes().then(() => showConfirm(record));
+  }
+  if (state.demo) {
+    const first = state.jst?.jobs[0];
+    if (first?.code) { codeInput.value = first.code; pickedHit = findCode(first.code, first.branch); }
+    Promise.all([fetch(SAMPLE_RESUME).then((r) => r.text()), fetch(SAMPLE_JST).then((r) => r.blob())]).then(([text, blob]) => {
+      resumePaste.value = text;
+      resumePaste.closest("details").open = true;
+      const files = new DataTransfer();
+      files.items.add(new File([blob], "jordan-lee-jst.pdf", { type: "application/pdf" }));
+      jstFile.files = files.files;
+      refresh();
+    }).catch(() => refresh());
+    refresh();
+  }
   return root;
 }
