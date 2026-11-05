@@ -38,6 +38,20 @@ button:focus-visible, .opp-pill:focus-visible { outline: 3px solid #f2b705; outl
 .row { display: flex; gap: .5rem; }
 .confirm .job { margin-bottom: 1rem; }
 
+/* Weekly action: deadline and backup plan */
+.action-plan { display: grid; gap: .75rem; grid-template-columns: 1fr; margin: 1rem 0 .5rem; }
+@media (min-width: 40rem) { .action-plan { grid-template-columns: 1fr 2fr; } }
+.action-plan div { background: #f0f2f7; border-radius: 6px; padding: .5rem .75rem; }
+.action-plan dt { font-weight: 700; color: var(--navy); }
+.action-plan dd { margin: 0; }
+
+/* Skills step: confirm or uncheck */
+.confirm-skill { display: flex; align-items: flex-start; gap: .25rem; margin: 0 0 .25rem; font-weight: 700; cursor: pointer; }
+.confirm-skill input { margin-top: .3rem; flex: none; }
+.card.unchecked { background: #f0f2f7; box-shadow: none; }
+.card.unchecked .line { background: none; color: #555; text-decoration: line-through; }
+.card .unchecked-note { margin-top: .5rem; color: #7a4800; font-weight: 600; }
+
 /* Background step: MOS / resume / JST */
 .tabs { display: flex; flex-wrap: wrap; gap: .25rem; margin: .75rem 0; }
 .tab { background: #fff; color: var(--navy); margin: 0; min-width: 6.5rem; }
@@ -126,3 +140,7 @@ button.linklike { background: none; border: 0; color: var(--opp-navy); text-deco
 .compare-table th, .compare-table td { text-align: left; vertical-align: top; padding: .55rem .75rem; border-bottom: 1px solid #e3e6ee; }
 .compare-table tbody th { font-weight: 600; color: #44505f; width: 24%; }
 .compare-table thead th { color: #1b1f24; }
+.fit-list { margin: 0; padding-left: 1.1rem; }
+.fit-list li { margin-bottom: .3rem; }
+.fit-list.ok li::marker { content: "✓  "; color: var(--ok); font-weight: 700; }
+.fit-list.no li::marker { content: "!  "; color: var(--no); font-weight: 700; }

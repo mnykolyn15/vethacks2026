@@ -4,9 +4,9 @@ Static web app for the Veteran's Day hackathon ("veteran's build"). Flow, built 
 
 1. Share a background three ways (type an MOS, upload a resume, or upload a JST) and confirm what was extracted
 2. 7-question questionnaire (work style, interests, constraints, money/timing, education, free text)
-3. Civilian skills translation with copy-ready resume lines tied to evidence, plus user-added skills that count toward matches
-4. Opportunity Map: three rings (Earn now 0–3 months, Short training 3–12 months, Big moves 1–4 years), role cards, compare any two roles, and a dream-job path (short-term job -> long-term skill building -> dream job)
-5. Gaps for a role + one action this week (under 2 hours)
+3. Civilian skills translation with copy-ready resume lines tied to evidence. Users can uncheck skills so they stop counting, and add skills from outside their record (hobbies, home life, certifications) that count toward matches
+4. Opportunity Map: three rings (Earn now 0–3 months, Short training 3–12 months, Big moves 1–4 years), role cards, compare any two roles (what fits / what's missing or risky), and a dream-job path (short-term job -> long-term skill building -> dream job)
+5. Gaps for a role + one action this week (under 2 hours) with a deadline 7 days out and a backup plan
 6. Map of in-person veteran employment help
 
 No build step, no dependencies, no AI/API keys. Plain HTML + ES modules. Libraries load from CDNs at runtime: pdf.js, Tesseract.js, and Mammoth (file parsing, only when a file is uploaded) and Leaflet + OpenStreetMap tiles (map).

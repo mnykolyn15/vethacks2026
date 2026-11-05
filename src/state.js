@@ -22,22 +22,25 @@ export const jordan = {
   answers: { handsOn: "hands-on", setting: "either", social: "team", interests: ["mechanical", "electrical", "leading"],
     commuteMiles: 30, daysOnly: true, childcare: true, relocate: "no", incomeBy: "2027-01-31", minPay: 20,
     wantsPaidTraining: true, education: "short", hoursPerWeek: 5, freeText: "A paid trade with daytime hours, close to home." },
+  // Skills from life outside the record. Jordan can uncheck or remove them like any other skill.
+  extraSkills: ["Household budgeting and logistics as a single parent", "Carpentry and custom furniture building"],
   dream: "industrial_electrician"
 };
 
 export const state = {
-  jst: null, extraSkills: [], answers: defaultAnswers(), answersDone: false, selected: null,
+  jst: null, extraSkills: [], uncheckedSkills: [], answers: defaultAnswers(), answersDone: false, selected: null,
   dream: null, compare: [], horizon: "earn"
 };
 
 export function profile() {
-  const skills = state.jst ? translate(state.jst) : [];
-  const added = state.extraSkills.map((text) => {
-    const creds = heldCredentials({ certs: [text], courses: [] });
-    return { text, tags: tagsForSkill(text), creds, line: creds.length ? `${text}.` : `Experience with ${text}.` };
-  });
+  const skills = (state.jst ? translate(state.jst) : [])
+    .map((s) => ({ ...s, confirmed: !state.uncheckedSkills.includes(s.tag) }));
+  const added = state.extraSkills.map((text) => ({
+    text, tags: tagsForSkill(text), creds: heldCredentials({ certs: [text], courses: [] }), line: `${text}.`
+  }));
   return {
-    skills: [...new Set([...skills.map((s) => s.tag), ...added.flatMap((a) => a.tags)])],
+    // Only skills the user has left checked count toward matches.
+    skills: [...new Set([...skills.filter((s) => s.confirmed).map((s) => s.tag), ...added.flatMap((a) => a.tags)])],
     skillItems: skills, added,
     credentials: state.jst ? heldCredentials(state.jst, state.extraSkills) : [],
     answers: state.answers

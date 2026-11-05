@@ -1,6 +1,7 @@
 import { careers } from "./data/careers.js";
 import { credentials } from "./data/credentials.js";
 import { pathways } from "./data/pathways.js";
+import { skillLabels } from "./translate.js";
 
 // The scoring rule is shown to the user, so keep it in one place.
 export const WEIGHTS = { skills: 0.5, constraints: 0.3, interests: 0.2 };
@@ -146,11 +147,42 @@ export function rankRoles(profile, today = new Date()) {
   return { rings, top };
 }
 
-// One action sized for under two hours, for the chosen role.
-export function weeklyAction(result) {
+// A plan B for the weekly action: another role that could pay soon, plus in-person help if money is tight.
+function backupPlan(result, profile, today) {
+  const others = careers.map((c) => scoreRole(c, profile, today))
+    .filter((s) => s.ring && s.horizon === "earn" && !s.blocked.length && s.role.id !== result.role.id)
+    .sort((a, b) => b.total - a.total);
+  const alt = others[0];
+  const lateForIncome = result.checks.some((c) => c.key === "timing" && !c.pass);
+  return [
+    alt ? `If this stalls, apply to ${alt.role.title} roles, which could start paying in about ${alt.weeks} weeks.` : "If this stalls, ask an American Job Center which local roles fit your limits.",
+    lateForIncome ? "This path may run past the date you need income, so ask an American Job Center about short-term options now." : ""
+  ].filter(Boolean).join(" ");
+}
+
+// One action sized for under two hours, for the chosen role, with a deadline and a plan B.
+export function weeklyAction(result, profile, today = new Date()) {
   if (!result) return null;
+  const deadline = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7);
+  const backup = backupPlan(result, profile, today);
   const first = result.missing[0];
-  if (first) return { text: credentials[first].firstStep, why: `${credentials[first].name} is the first gap for ${result.role.title}.` };
+  if (first) return { text: credentials[first].firstStep, why: `${credentials[first].name} is the first gap for ${result.role.title}.`, deadline, backup };
   return { text: `Update your resume with two translated skill lines, then apply to 3 ${result.role.title} postings (about 90 min).`,
-    why: `You already meet the requirements for ${result.role.title}.` };
+    why: `You already meet the requirements for ${result.role.title}.`, deadline, backup };
+}
+
+// Plain-language summary for comparing roles: what works for this person and what doesn't.
+export function fitSummary(s) {
+  const skillGaps = s.role.skills.filter((t) => !s.matchedSkills.includes(t));
+  return {
+    fits: [
+      ...(s.matchedSkills.length ? [`Already have ${s.matchedSkills.length} of ${s.role.skills.length} skills`] : []),
+      ...s.checks.filter((c) => c.pass).map((c) => `${c.label}: ${c.detail}`)
+    ],
+    risks: [
+      ...s.checks.filter((c) => !c.pass).map((c) => `${c.label}: ${c.detail}`),
+      ...s.missing.map((id) => `Credential to earn: ${credentials[id].name}. Estimated cost: ${credentials[id].cost}`),
+      ...skillGaps.map((t) => `Skill to build: ${skillLabels[t]}`)
+    ]
+  };
 }

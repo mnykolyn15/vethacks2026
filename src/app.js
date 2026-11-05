@@ -29,7 +29,8 @@ function loadJordan() {
   state.answers = { ...defaultAnswers(), ...structuredClone(jordan.answers) };
   state.answersDone = true;
   state.selected = null;
-  state.extraSkills = [];
+  state.extraSkills = [...jordan.extraSkills];
+  state.uncheckedSkills = [];
   state.dream = jordan.dream;
   state.compare = [];
   state.horizon = "earn";

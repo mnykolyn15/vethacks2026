@@ -1,6 +1,6 @@
 import { h } from "../dom.js";
 import { state, profile } from "../state.js";
-import { rankRoles, rankHorizons, buildPath, scoreRole, HORIZONS, HORIZON_ORDER, WEIGHTS } from "../matching.js";
+import { rankRoles, rankHorizons, buildPath, scoreRole, fitSummary, HORIZONS, HORIZON_ORDER, WEIGHTS } from "../matching.js";
 import { careers } from "../data/careers.js";
 import { credentials } from "../data/credentials.js";
 import { pathways } from "../data/pathways.js";
@@ -19,6 +19,7 @@ const payRange = (role) => `${usd(role.pay.lo)}–${usd(role.pay.hi)}/yr`;
 const SCHEDULE = { days: ["Often daytime", "sched-days"], mixed: ["Shifts vary", "sched-vary"], shifts: ["Nights or rotating", "sched-vary"] };
 const MODE_CLASS = { "Hands-on": "mode-hands", Mix: "mode-mix", "Desk + floor": "mode-floor", Desk: "mode-floor" };
 const skillNames = (tags) => tags.map((t) => skillLabels[t]).join(", ");
+const bullets = (items, cls, empty) => (items.length ? h("ul", { class: cls }, items.map((t) => h("li", {}, t))) : empty);
 
 function timeLabel(s) {
   if (!s.missing.length) return `About ${s.weeks} weeks`;
@@ -181,10 +182,9 @@ export function opportunityView(ctx) {
           row("Estimated pay", (s) => payRange(s.role)),
           row("Schedule", (s) => SCHEDULE[s.role.hours][0]),
           row("Work style", (s) => pathways[s.role.id].mode),
-          row("Credentials to earn", (s) => s.missing.map((c) => `${credentials[c].name}. Estimated cost: ${credentials[c].cost}`).join("; ") || "None"),
-          row("Skills you already have", (s) => `${s.matchedSkills.length} of ${s.role.skills.length}`),
-          row("Skills to build", (s) => skillNames(s.role.skills.filter((t) => !s.matchedSkills.includes(t))) || "None"),
-          row("Match", (s) => pct(s.total))))));
+          row("Match", (s) => pct(s.total)),
+          row("What fits", (s) => bullets(fitSummary(s).fits, "fit-list ok", "Nothing yet")),
+          row("What's missing or risky", (s) => bullets(fitSummary(s).risks, "fit-list no", "Nothing flagged"))))));
   }
 
   // ---- Role cards ----

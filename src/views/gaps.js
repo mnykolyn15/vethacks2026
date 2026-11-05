@@ -10,11 +10,15 @@ export function gapsView(ctx) {
   const role = careers.find((c) => c.id === state.selected) || top?.role;
   if (!role) return h("section", {}, h("h2", {}, "Gaps"), h("p", {}, "No matches yet — go back and adjust your answers."));
   const s = scoreRole(role, prof);
-  const action = weeklyAction(s);
+  const action = weeklyAction(s, prof);
+  const deadline = action.deadline.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
 
   return h("section", {},
     h("h2", {}, `Gaps for ${role.title}`),
-    h("div", { class: "action" }, h("h3", {}, "Your one action this week (under 2 hours)"), h("p", { class: "big" }, action.text), h("small", {}, action.why)),
+    h("div", { class: "action" }, h("h3", {}, "Your one action this week (under 2 hours)"), h("p", { class: "big" }, action.text), h("small", {}, action.why),
+      h("dl", { class: "action-plan" },
+        h("div", {}, h("dt", {}, "Finish by"), h("dd", {}, deadline)),
+        h("div", {}, h("dt", {}, "Backup plan"), h("dd", {}, action.backup)))),
     s.missing.length
       ? h("ul", { class: "cards" }, s.missing.map((id) => { const c = credentials[id]; return h("li", { class: "card" },
           h("strong", {}, c.name), h("div", {}, `Cost: ${c.cost} · Time: about ${c.weeks} weeks`),

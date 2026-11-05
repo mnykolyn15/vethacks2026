@@ -99,6 +99,7 @@ export function intakeView(ctx) {
         certs: lines("certs")
       };
       state.extraSkills = [...new Set(lines("extra"))];
+      state.uncheckedSkills = []; // a new record means new skills to review
       ctx.next();
     });
     confirmBox.replaceChildren(h("h3", {}, "Check what we found"),
