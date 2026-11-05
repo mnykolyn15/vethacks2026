@@ -101,6 +101,9 @@ export function intakeView(ctx) {
       state.extraSkills = [...new Set(lines("extra"))];
       state.uncheckedSkills = []; // a new record means new skills to review
       state.location = null; // not the demo veteran anymore
+      state.dream = null;
+      state.firstJob = null;
+      state.dreamNote = "";
       ctx.next();
     });
     confirmBox.replaceChildren(h("h3", {}, "Check what we found"),

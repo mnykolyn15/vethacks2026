@@ -5,6 +5,7 @@ import { careers } from "../data/careers.js";
 import { credentials } from "../data/credentials.js";
 import { pathways } from "../data/pathways.js";
 import { skillLabels } from "../translate.js";
+import { dreamOptions } from "./goal.js";
 
 const NS = "http://www.w3.org/2000/svg";
 const svg = (tag, attrs = {}, ...kids) => {
@@ -80,7 +81,7 @@ export function opportunityView(ctx) {
       svg("text", { "text-anchor": "middle", y: 5 }, label));
   };
   function paintMarkers() {
-    const path = state.dream ? buildPath(state.dream, prof) : null;
+    const path = state.dream ? buildPath(state.dream, prof, state.firstJob) : null;
     const m = [];
     if (path?.direct) m.push(marker("★ Dream job", geometry.earn.mark, "marker-dream"));
     else if (path) {
@@ -94,14 +95,8 @@ export function opportunityView(ctx) {
   // ---- Dream-job path ----
   const pathBox = h("div", { class: "path-steps", "aria-live": "polite" });
   const dreamSelect = h("select", { id: "dream-job", onchange: (e) => setDream(e.target.value || null) });
-  {
-    const all = careers.map((c) => scoreRole(c, prof));
-    dreamSelect.append(h("option", { value: "" }, "Choose a role"),
-      ...HORIZON_ORDER.map((k) => h("optgroup", { label: `${HORIZONS[k].label} (${HORIZONS[k].span})` },
-        all.filter((s) => s.horizon === k).sort((a, b) => a.role.title.localeCompare(b.role.title))
-          .map((s) => h("option", { value: s.role.id }, s.role.title)))));
-    dreamSelect.value = state.dream || "";
-  }
+  dreamSelect.append(...dreamOptions(prof));
+  dreamSelect.value = state.dream || "";
 
   const dreamButtons = new Map();
   function setDream(id) {
@@ -120,10 +115,10 @@ export function opportunityView(ctx) {
 
   function paintPath() {
     if (!state.dream) {
-      pathBox.replaceChildren(h("p", { class: "path-empty" }, "Choose a dream job to see the steps from your first paycheck to where you want to end up."));
+      pathBox.replaceChildren(h("p", { class: "path-empty" }, "Not sure yet? That's fine. Explore the rings below, and choose a dream job here whenever you're ready to see the steps."));
       return;
     }
-    const p = buildPath(state.dream, prof);
+    const p = buildPath(state.dream, prof, state.firstJob);
     const step = (eyebrow, title, ...body) => h("li", { class: "path-step" }, h("p", { class: "eyebrow" }, eyebrow), h("h4", {}, title), ...body);
     if (p.direct) {
       pathBox.replaceChildren(h("ol", { class: "path" },
@@ -249,6 +244,7 @@ export function opportunityView(ctx) {
     h("div", { class: "path-box" },
       h("h3", {}, "Map out your path"),
       h("label", { for: "dream-job" }, "Your dream job"), dreamSelect,
+      state.dreamNote.trim() ? h("p", { class: "path-note" }, h("strong", {}, "You also told us: "), state.dreamNote.trim()) : null,
       pathBox),
     panel,
     compareBox,

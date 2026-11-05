@@ -69,5 +69,5 @@ export function skillsView(ctx) {
         h("button", { class: "secondary", "aria-label": `Remove ${a.text}`, onclick: () => removeSkill(a.text) }, "Remove")))) : null),
 
     allLines.length ? copyAll : null,
-    h("div", { class: "nav" }, h("button", { onclick: ctx.next }, "See my Opportunity Map")));
+    h("div", { class: "nav" }, h("button", { onclick: ctx.next }, "Next: where this can take you")));
 }

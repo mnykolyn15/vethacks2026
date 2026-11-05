@@ -118,7 +118,7 @@ export function rankHorizons(profile, today = new Date()) {
 }
 
 // short term job -> long-term skill building -> dream job.
-export function buildPath(dreamId, profile, today = new Date()) {
+export function buildPath(dreamId, profile, firstJobId = null, today = new Date()) {
   const role = careers.find((c) => c.id === dreamId);
   if (!role) return null;
   const dream = scoreRole(role, profile, today);
@@ -127,11 +127,12 @@ export function buildPath(dreamId, profile, today = new Date()) {
   const overlap = (s) => s.role.skills.filter((t) => role.skills.includes(t)).length / role.skills.length;
   const pick = (list) => [...list].sort((a, b) => overlap(b) + b.total - (overlap(a) + a.total))[0] || null;
 
-  // First job: pays soon, fits the user's hard limits if possible, and shares the most with the dream job.
+  // First job: the one the person chose, or one that pays soon, fits the user's hard limits if possible, and shares the most with the dream job.
   const earn = careers.map((c) => scoreRole(c, profile, today))
     .filter((s) => s.ring && s.horizon === "earn" && s.role.id !== dreamId);
   const direct = dream.horizon === "earn" && gaps.length === 0;
-  const first = direct ? dream : pick(earn.filter((s) => !s.blocked.length)) || pick(earn);
+  const chosen = earn.find((s) => s.role.id === firstJobId);
+  const first = direct ? dream : chosen || pick(earn.filter((s) => !s.blocked.length)) || pick(earn);
   const onTheJob = first ? gaps.filter((t) => first.role.skills.includes(t)) : [];
   const toTrain = gaps.filter((t) => !onTheJob.includes(t));
 

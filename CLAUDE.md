@@ -5,9 +5,10 @@ Static web app for the Veteran's Day hackathon ("veteran's build"). Flow, built 
 1. Share a background three ways (type an MOS, upload a resume, or upload a JST) and confirm what was extracted
 2. 7-question questionnaire (work style, interests, constraints, money/timing, education, free text)
 3. Civilian skills translation with copy-ready resume lines tied to evidence. Users can uncheck skills so they stop counting, and add skills from outside their record (hobbies, home life, certifications) that count toward matches
-4. Opportunity Map: three rings (Earn now 0–3 months, Short training 3–12 months, Big moves 1–4 years), role cards, compare any two roles (what fits / what's missing or risky), and a dream-job path (short-term job -> long-term skill building -> dream job)
-5. Gaps for a role + one action this week (under 2 hours) with a deadline 7 days out and a backup plan
-6. Map of in-person veteran employment help
+4. Your goal: shows the closest roles the person could start soon and asks which interests them, plus their dream job (or "not sure yet")
+5. Opportunity Map: three rings (Earn now 0–3 months, Short training 3–12 months, Big moves 1–4 years), role cards, compare any two roles (what fits / what's missing or risky), and a dream-job path (short-term job -> long-term skill building -> dream job)
+6. Gaps for a role + one action this week (under 2 hours) with a deadline 7 days out and a backup plan
+7. Map of in-person veteran employment help
 
 No build step, no dependencies, no AI/API keys. Plain HTML + ES modules. Libraries load from CDNs at runtime: pdf.js, Tesseract.js, and Mammoth (file parsing, only when a file is uploaded) and Leaflet + OpenStreetMap tiles (map).
 
@@ -21,7 +22,7 @@ cd vethacks2026
 python3 -m http.server 8000
 ```
 
-Open http://localhost:8000 and click **Load demo: Jordan Lee** to jump straight to the Opportunity Map.
+Open http://localhost:8000 and click **Load demo: Jordan Lee** to start at the Skills step with Jordan's data filled in.
 
 - Cloning over SSH needs an SSH key added to your GitHub account (https://github.com/settings/ssh/new). Otherwise clone with `https://github.com/saanikak/vethacks2026.git`.
 - Serve over HTTP rather than opening `index.html` directly: ES modules are blocked on `file://` URLs.
@@ -44,7 +45,7 @@ Open http://localhost:8000 and click **Load demo: Jordan Lee** to jump straight 
 - Match score = 50% skills + 30% constraints (hours, distance, timing, pay, paid training, classes) + 20% interests. Roles under 30% are hidden.
 - Opportunity Map rings are based on time, not score: with nothing missing, time = the role's `baseWeeks`; with a credential missing, time = its `months` in `pathways.js`. Up to 3 months = Earn now, up to 12 = Short training, longer = Big moves. Max 8 roles per ring, best match first.
 - The internal strong/stretch/reach `ring` value is still computed in `scoreRole`. It decides which roles are shown and the default role on the Gaps step.
-- Dream path: first job = the Earn now role that fits the hours and pay limits and has the best skill overlap with the dream job plus match score.
+- Dream path: the dream job always comes from the person, never a preset, including in the demo. First job = the role they chose on the goal step; otherwise the Earn now role that fits the hours and pay limits and has the best skill overlap with the dream job plus match score.
 - Map coverage: New Jersey only. Riverbend County isn't a real place, so the demo map labels it as made up and keeps its sample pins at real NJ coordinates.
 
 ## Known gaps / TODO

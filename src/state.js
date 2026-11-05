@@ -24,13 +24,12 @@ export const jordan = {
     wantsPaidTraining: true, education: "short", hoursPerWeek: 5, freeText: "A paid trade with daytime hours, close to home." },
   location: "Riverbend County, NJ", // made-up county, like Jordan
   // Skills from life outside the record. Jordan can uncheck or remove them like any other skill.
-  extraSkills: ["Household budgeting and logistics as a single parent", "Carpentry and custom furniture building"],
-  dream: "industrial_electrician"
+  extraSkills: ["Household budgeting and logistics as a single parent", "Carpentry and custom furniture building"]
 };
 
 export const state = {
   jst: null, location: null, extraSkills: [], uncheckedSkills: [], answers: defaultAnswers(), answersDone: false, selected: null,
-  dream: null, compare: [], horizon: "earn"
+  dream: null, firstJob: null, dreamNote: "", compare: [], horizon: "earn"
 };
 
 export function profile() {

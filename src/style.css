@@ -38,6 +38,16 @@ button:focus-visible, .opp-pill:focus-visible { outline: 3px solid #f2b705; outl
 .row { display: flex; gap: .5rem; }
 .confirm .job { margin-bottom: 1rem; }
 
+/* Goal step: immediate roles and the dream-job question */
+.goal-now { list-style: none; padding: 0; display: grid; gap: .6rem; }
+.goal-role { display: flex; gap: .6rem; align-items: flex-start; margin: 0; padding: .7rem 1rem; background: #fff; border: 2px solid #d8dce6; border-radius: 10px; font-weight: 400; cursor: pointer; }
+.goal-role:has(input:checked) { border-color: var(--navy); }
+.goal-role input { width: auto; margin-top: .3rem; flex: none; }
+.goal-role strong, .goal-role small { display: block; }
+.goal-warn { color: #7a4800; font-weight: 600; }
+.goal h2:not(:first-child) { margin-top: 2rem; }
+.path-note { background: #f1f4f9; padding: .5rem .75rem; border-radius: 8px; }
+
 /* Weekly action: deadline and backup plan */
 .action-plan { display: grid; gap: .75rem; grid-template-columns: 1fr; margin: 1rem 0 .5rem; }
 @media (min-width: 40rem) { .action-plan { grid-template-columns: 1fr 2fr; } }
