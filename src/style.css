@@ -1,0 +1,13 @@
+:root { --navy: #1b2a49; --accent: #b22234; --bg: #f5f6f8; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg); color: #222; line-height: 1.5; }
+header { background: var(--navy); color: #fff; padding: 2rem 1rem; text-align: center; }
+header h1 { margin: 0 0 .25rem; }
+main { max-width: 42rem; margin: 0 auto; padding: 1rem; }
+label { display: block; font-weight: 600; margin-bottom: .25rem; }
+input { width: 100%; padding: .75rem; font-size: 1rem; border: 2px solid var(--navy); border-radius: 6px; }
+#results { list-style: none; padding: 0; display: grid; gap: .5rem; margin: 1rem 0; }
+button { cursor: pointer; padding: .6rem 1rem; font-size: 1rem; border-radius: 6px; border: 1px solid var(--navy); background: #fff; }
+#results button { width: 100%; text-align: left; }
+button:hover, button:focus-visible { background: var(--navy); color: #fff; }
+#detail { background: #fff; padding: 1rem 1.25rem; border-left: 5px solid var(--accent); border-radius: 6px; }

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Skills Translator – Veteran's Build</title>
+  <link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+  <header>
+    <h1>Skills Translator</h1>
+    <p>Turn your military role into civilian job titles, skills, and resume bullets.</p>
+  </header>
+  <main>
+    <label for="search">Search by MOS code or job title</label>
+    <input id="search" type="search" placeholder="e.g. 68W, medic, logistics" autocomplete="off">
+    <ul id="results" aria-live="polite"></ul>
+    <section id="detail" hidden aria-live="polite"></section>
+  </main>
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>
