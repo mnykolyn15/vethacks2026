@@ -3,8 +3,7 @@ import { state, jordan, defaultAnswers } from "./state.js";
 import { intakeView } from "./views/intake.js";
 import { questionnaireView } from "./views/questionnaire.js";
 import { skillsView } from "./views/skills.js";
-import { goalView } from "./views/goal.js";
-import { opportunityView } from "./views/opportunity.js";
+import { targetView } from "./views/target.js";
 import { gapsView } from "./views/gaps.js";
 import { mapView } from "./views/map.js";
 
@@ -12,8 +11,7 @@ const steps = [
   { label: "Background", view: intakeView },
   { label: "Questions", view: questionnaireView, needs: () => state.jst },
   { label: "Skills", view: skillsView, needs: () => state.jst },
-  { label: "Your goal", view: goalView, needs: () => state.jst && state.answersDone },
-  { label: "Opportunity Map", view: opportunityView, needs: () => state.jst && state.answersDone },
+  { label: "Your target", view: targetView, needs: () => state.jst && state.answersDone },
   { label: "Gaps", view: gapsView, needs: () => state.jst && state.answersDone },
   { label: "Help nearby", view: mapView }
 ];
@@ -34,14 +32,18 @@ function loadJordan() {
   state.location = jordan.location;
   state.extraSkills = [...jordan.extraSkills];
   state.uncheckedSkills = [];
-  state.dream = null; // Jordan chooses on the goal step
-  state.dreamTheme = null;
-  state.apprenticeship = "all";
+  // Jordan makes these choices on the Your target step.
+  state.motivations = [];
+  state.motivationsEdited = false;
   state.firstJob = null;
+  state.growJob = null;
+  state.dream = null;
   state.dreamNote = "";
+  state.apprenticeship = "all";
   state.compare = [];
-  state.horizon = "earn";
-  go(2); // start at the skills so the demo walks through the goal question
+  state.targetRole = null;
+  state.targetView = "target";
+  go(2); // start at the skills so the demo walks through choosing a target
 }
 
 function render() {
@@ -52,7 +54,7 @@ function render() {
   }));
   root.replaceChildren(
     h("header", {}, h("h1", {}, "Veterans Build America"),
-      h("p", {}, "From your service record to an opportunity map, gaps to close, one action this week, and help nearby."),
+      h("p", {}, "From your service record to your target, gaps to close, one action this week, and help nearby."),
       h("button", { class: "demo", onclick: loadJordan }, "Load demo: Jordan Lee")),
     nav, h("main", {}, steps[current].view(ctx)));
 }

@@ -1,4 +1,4 @@
-// How each role appears on the Opportunity Map. Keyed by career id.
+// How each role appears on Your target. Keyed by career id.
 // months: rough ILLUSTRATIVE time to be working in the role when a required credential is still
 //   missing (includes apprenticeship/advancement time). Verify before presenting as fact.
 //   With nothing missing, matching.js uses the role's baseWeeks instead.
@@ -18,7 +18,7 @@ export const pathways = {
   warehouse_sup: p(1, "Mix", "Warehouses need leads who can run a crew and keep inventory accurate.", "Get a one-day forklift certificate, then apply to lead roles."),
   safety_coord: p(3, "Mix", "Job sites and plants need someone who owns safety, training, and compliance.", "Earn the OSHA 30 card, then apply to construction and manufacturing firms."),
 
-  // Short training
+  // Grow ring
   hvac_tech: p(4, "Hands-on", "Heating and cooling work is steady, and your troubleshooting carries over.", "Earn EPA 608, then apply to shops that train new techs."),
   solar_tech: p(4, "Hands-on", "Crews install and service solar systems; electrical experience gives you a head start.", "Prepare for the NABCEP PV Associate exam and ask installers about paid training."),
   heavy_equip: p(4, "Hands-on", "Construction firms need reliable operators who also look after their machines.", "Earn the OSHA 30 card and ask local firms and unions about veteran entry."),
@@ -33,7 +33,7 @@ export const pathways = {
   data_analyst: p(10, "Desk", "Analysts turn messy records into decisions leaders can act on.", "Complete an analytics certificate and build one small portfolio project."),
   police: p(12, "Hands-on", "Agencies often pay recruits through the academy and may offer veteran preference.", "Check agencies' testing dates and veteran-preference rules."),
 
-  // Big moves
+  // Dream ring
   plant_ops: p(14, "Mix", "Operators run boilers and power plants; licensed roles pay well but often rotate shifts.", "Look up your state's license path and ask plants about trainee roles."),
   network_admin: p(18, "Desk", "Admins design and run the networks a business depends on.", "Start with A+, then Network+, and move up from a help desk role."),
   maint_supervisor: p(18, "Mix", "Supervisors run the crew, the schedule, and the budget. It usually follows time as a lead tech.", "Earn OSHA 30, take lead-tech roles, and document the teams you've run."),

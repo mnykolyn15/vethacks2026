@@ -30,7 +30,7 @@ export const jordan = {
     certs: []
   },
   answers: { ...defaultAnswers(),
-    workTypes: ["physical", "build"], pace: ["problems", "pressure"], where: ["different", "indoors"], people: ["crew", "leading"],
+    workTypes: ["physical", "build"], pace: ["problems", "pressure"], where: ["different", "indoors"], people: ["crew", "lead"],
     moments: ["puzzle", "pressure", "people"], hours: ["days"],
     zip: "07501", zipPlace: "Paterson, NJ", lat: 40.9143, lng: -74.1671,
     commuteMiles: 30, commuteFlex: 10, relocate: "no", incomeBy: "2027-01-31", needsHelp: "no",
@@ -43,7 +43,9 @@ export const jordan = {
 
 export const state = {
   jst: null, location: null, extraSkills: [], uncheckedSkills: [], answers: defaultAnswers(), answersDone: false, selected: null,
-  dream: null, dreamTheme: null, apprenticeship: "all", firstJob: null, dreamNote: "", compare: [], horizon: "earn"
+  // Your target: what the person chose. Gaps, Compare, and any later screen read these.
+  motivations: [], motivationsEdited: false, firstJob: null, growJob: null, dream: null, dreamNote: "",
+  apprenticeship: "all", compare: [], targetRole: null, targetView: "target"
 };
 
 export function profile() {

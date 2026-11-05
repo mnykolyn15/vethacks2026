@@ -5,11 +5,11 @@ import { skillLabels } from "./translate.js";
 
 // The scoring rule is shown to the user, so keep it in one place.
 export const WEIGHTS = { skills: 0.5, constraints: 0.3, interests: 0.2 };
-// Opportunity Map rings, inner to outer. `maxMonths` decides which ring a role lands in.
+// Your target rings, inner to outer. `maxMonths` decides which ring a role lands in.
 export const HORIZONS = {
   earn: { label: "Earn now", span: "0–3 months", maxMonths: 3, heading: "Roles that build directly on your record" },
-  train: { label: "Short training", span: "3–12 months", maxMonths: 12, heading: "Roles a short credential can unlock" },
-  big: { label: "Big moves", span: "1–4 years", maxMonths: Infinity, heading: "Longer paths that pay off down the road" }
+  train: { label: "Grow", span: "3–12 months", maxMonths: 12, heading: "Roles a short credential can unlock" },
+  big: { label: "Dream", span: "1–4 years", maxMonths: Infinity, heading: "Longer paths that pay off down the road" }
 };
 export const HORIZON_ORDER = ["earn", "train", "big"];
 const MAX_PER_RING = 8;
@@ -117,7 +117,10 @@ export function scoreRole(role, profile, today = new Date()) {
   const flexMiles = Number(q.commuteFlex) || 0;
   const commuteOk = role.commute <= q.commuteMiles;
   const withinFlex = !commuteOk && role.commute <= q.commuteMiles + flexMiles;
-  const payOk = lo >= need;
+  // Pay ranges are estimates, so a role only fails on pay if even the top of its range is under the minimum.
+  // A role that starts under the minimum but can reach it passes, with a note shown in Compare.
+  const payOk = hi >= need;
+  const startsLow = payOk && lo < need;
   const checks = [
     { key: "hours", label: "Hours", pass: hoursPass, weight: weightOf(q, "hours"), strong: q.importance?.hours === "strong",
       score: hoursPass ? 1 : role.hours === "mixed" ? 0.4 : 0,
@@ -129,7 +132,8 @@ export function scoreRole(role, profile, today = new Date()) {
       score: Math.min(1, available / weeks),
       detail: `About ${weeks} weeks to first paycheck; you need income in ~${available} weeks` },
     { key: "pay", label: "Pay", pass: payOk, weight: weightOf(q, "pay"), strong: q.importance?.pay === "strong",
-      score: !need || payOk ? 1 : hi >= need ? 0.6 : 0.2,
+      score: startsLow ? 0.6 : payOk ? 1 : 0.2,
+      note: startsLow ? `Pay: can start around ${fmt(lo)}${unit}, under your ${fmt(need)}${unit} minimum, and reach about ${fmt(hi)}${unit} (estimate)` : null,
       detail: `${money(role.pay.lo)}–${money(role.pay.hi)}/yr (${salaried ? "salaried" : `about $${(role.pay.lo / 2080).toFixed(0)}–$${(role.pay.hi / 2080).toFixed(0)}/hr`}); your minimum is ${need ? fmt(need) : "not set"}${need ? unit : ""}` }
   ];
   const eduOk = maxWeeks <= eduLimit;
@@ -189,43 +193,25 @@ export function scoreRole(role, profile, today = new Date()) {
   return { role, ring, total, skills, constraints, interests, matchedSkills, missing, checks, blocked, weeks, months, horizon };
 }
 
-// Roles grouped by how soon they could pay off (Opportunity Map rings), best fit first.
 // Apprenticeship roles are paid, structured training that can take years. People choose, on the results,
 // whether to see everything ("all"), only those roles ("only"), or none of them ("none").
 export const requiresApprenticeship = (role) => role.requires.some((c) => c.endsWith("_apprenticeship"));
 const allowed = (role, pref) => pref === "only" ? requiresApprenticeship(role) : pref === "none" ? !requiresApprenticeship(role) : true;
 
-export function rankHorizons(profile, today = new Date(), { apprenticeship = "all" } = {}) {
+// Every role, grouped by ring. Nothing is ruled out, so low fit never hides a role. `total` only orders them.
+// `keep` holds roles the person already chose, which stay visible whatever the apprenticeship setting says.
+export function rolesByHorizon(profile, today = new Date(), { apprenticeship = "all", keep = [] } = {}) {
   const out = { earn: [], train: [], big: [] };
   for (const r of careers) {
-    if (!allowed(r, apprenticeship)) continue;
-    const s = scoreRole(r, profile, today);
-    if (s.ring) out[s.horizon].push(s);
+    if (allowed(r, apprenticeship) || keep.includes(r.id)) { const s = scoreRole(r, profile, today); out[s.horizon].push(s); }
   }
-  for (const k of HORIZON_ORDER) out[k] = out[k].sort((a, b) => b.total - a.total).slice(0, MAX_PER_RING);
+  for (const k of HORIZON_ORDER) out[k].sort((a, b) => b.total - a.total);
   return out;
 }
 
-// short term job -> long-term skill building -> dream job.
-export function buildPath(dreamId, profile, firstJobId = null, today = new Date()) {
-  const role = careers.find((c) => c.id === dreamId);
-  if (!role) return null;
-  const dream = scoreRole(role, profile, today);
-  const have = new Set(profile.skills);
-  const gaps = role.skills.filter((t) => !have.has(t));
-  const overlap = (s) => s.role.skills.filter((t) => role.skills.includes(t)).length / role.skills.length;
-  const pick = (list) => [...list].sort((a, b) => overlap(b) + b.total - (overlap(a) + a.total))[0] || null;
-
-  // First job: the one the person chose, or one that pays soon, fits the user's hard limits if possible, and shares the most with the dream job.
-  const earn = careers.map((c) => scoreRole(c, profile, today))
-    .filter((s) => s.ring && s.horizon === "earn" && s.role.id !== dreamId);
-  const direct = dream.horizon === "earn" && gaps.length === 0;
-  const chosen = earn.find((s) => s.role.id === firstJobId);
-  const first = direct ? dream : chosen || pick(earn.filter((s) => !s.blocked.length)) || pick(earn);
-  const onTheJob = first ? gaps.filter((t) => first.role.skills.includes(t)) : [];
-  const toTrain = gaps.filter((t) => !onTheJob.includes(t));
-
-  return { dream, first, direct, onTheJob, toTrain, credentials: dream.missing };
+// Limits this role really fails, in words: only ones the person marked as Strong.
+export function limitProblems(s) {
+  return s.checks.filter((c) => c.strong && !c.pass).map((c) => `${c.label.toLowerCase()}: ${c.detail}.`);
 }
 
 export function rankRoles(profile, today = new Date(), { apprenticeship = "all" } = {}) {
@@ -267,10 +253,11 @@ export function fitSummary(s) {
   return {
     fits: [
       ...(s.matchedSkills.length ? [`Already have ${s.matchedSkills.length} of ${s.role.skills.length} skills`] : []),
-      ...s.checks.filter((c) => c.pass).map((c) => `${c.label}: ${c.detail}`)
+      ...s.checks.filter((c) => c.pass && !c.note).map((c) => `${c.label}: ${c.detail}`)
     ],
     risks: [
       ...s.checks.filter((c) => !c.pass).map((c) => `${c.label}: ${c.detail}`),
+      ...s.checks.filter((c) => c.note).map((c) => c.note),
       ...s.missing.map((id) => `Credential to earn: ${credentials[id].name}. Estimated cost: ${credentials[id].cost}`),
       ...skillGaps.map((t) => `Skill to build: ${skillLabels[t]}`)
     ]

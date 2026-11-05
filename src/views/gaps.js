@@ -7,7 +7,7 @@ import { credentials } from "../data/credentials.js";
 export function gapsView(ctx) {
   const prof = profile();
   const { top } = rankRoles(prof, undefined, { apprenticeship: state.apprenticeship });
-  const role = careers.find((c) => c.id === state.selected) || top?.role;
+  const role = careers.find((c) => c.id === (state.selected || state.dream || state.firstJob || state.growJob)) || top?.role;
   if (!role) return h("section", {}, h("h2", {}, "Gaps"), h("p", {}, "No matches yet — go back and adjust your answers."));
   const s = scoreRole(role, prof);
   const action = weeklyAction(s, prof);
@@ -25,5 +25,5 @@ export function gapsView(ctx) {
           h("small", {}, `Likely funding: ${c.funding.join("; ")}`)); }))
       : h("p", {}, "You meet every credential requirement for this role. 🎉"),
     h("p", {}, h("small", {}, "Costs and times are estimates. Check current funding rules with an American Job Center or va.gov.")),
-    h("div", { class: "nav" }, h("button", { class: "secondary", onclick: ctx.back }, "Back to Opportunity Map"), h("button", { onclick: ctx.next }, "Find in-person help")));
+    h("div", { class: "nav" }, h("button", { class: "secondary", onclick: ctx.back }, "Back to Your target"), h("button", { onclick: ctx.next }, "Find in-person help")));
 }
