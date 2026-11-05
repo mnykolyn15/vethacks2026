@@ -1,6 +1,6 @@
 # VetHacks 2026 – Veterans Build America (MVP)
 
-Static web app for the Veteran's Day hackathon ("veteran's build"). Flow, built around the made-up demo veteran Jordan Lee (Army generator repairer, single parent, northern NJ):
+Static web app for the Veteran's Day hackathon ("veteran's build"). Flow, built around the made-up demo veteran Jordan Lee (Army generator repairer, MOS 91D, single parent, made-up Riverbend County NJ, $25/hr minimum):
 
 1. Share a background three ways (type an MOS, upload a resume, or upload a JST) and confirm what was extracted
 2. 7-question questionnaire (work style, interests, constraints, money/timing, education, free text)
@@ -45,7 +45,7 @@ Open http://localhost:8000 and click **Load demo: Jordan Lee** to jump straight 
 - Opportunity Map rings are based on time, not score: with nothing missing, time = the role's `baseWeeks`; with a credential missing, time = its `months` in `pathways.js`. Up to 3 months = Earn now, up to 12 = Short training, longer = Big moves. Max 8 roles per ring, best match first.
 - The internal strong/stretch/reach `ring` value is still computed in `scoreRole`. It decides which roles are shown and the default role on the Gaps step.
 - Dream path: first job = the Earn now role that fits the hours and pay limits and has the best skill overlap with the dream job plus match score.
-- Map coverage: New Jersey only.
+- Map coverage: New Jersey only. Riverbend County isn't a real place, so the demo map labels it as made up and keeps its sample pins at real NJ coordinates.
 
 ## Known gaps / TODO
 

@@ -108,7 +108,7 @@ export function parseResume(rawText, knownCodes = []) {
     }
   }
 
-  // "MOS 52D" is often written apart from the job it belongs to.
+  // "MOS 91D" is often written apart from the job it belongs to.
   const mos = codeIn(lines.join("\n"));
   if (mos && !jobs.some((j) => j.code)) {
     const military = jobs.find((j) => /army|soldier|military|\bus[ma]c?\b|navy|air force|marine/i.test(`${j.title} ${j.duties.join(" ")}`));

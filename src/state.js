@@ -9,7 +9,7 @@ export const defaultAnswers = () => ({
 // Jordan Lee: the made-up demo veteran from the feature list (entered by hand, no parsing).
 export const jordan = {
   jst: {
-    jobs: [{ code: "52D", title: "Power Generation Equipment Repairer", start: "2019-03", end: "2026-12", duties: [
+    jobs: [{ code: "91D", title: "Power Generation Equipment Repairer", start: "2019-03", end: "2026-12", duties: [
       "Troubleshot and repaired diesel generator sets and power plants",
       "Led 4 repairers in daily maintenance and repair operations",
       "Performed preventive maintenance checks and services (PMCS) on 30 generators",
@@ -20,15 +20,16 @@ export const jordan = {
     certs: []
   },
   answers: { handsOn: "hands-on", setting: "either", social: "team", interests: ["mechanical", "electrical", "leading"],
-    commuteMiles: 30, daysOnly: true, childcare: true, relocate: "no", incomeBy: "2027-01-31", minPay: 20,
+    commuteMiles: 30, daysOnly: true, childcare: true, relocate: "no", incomeBy: "2027-01-31", minPay: 25,
     wantsPaidTraining: true, education: "short", hoursPerWeek: 5, freeText: "A paid trade with daytime hours, close to home." },
+  location: "Riverbend County, NJ", // made-up county, like Jordan
   // Skills from life outside the record. Jordan can uncheck or remove them like any other skill.
   extraSkills: ["Household budgeting and logistics as a single parent", "Carpentry and custom furniture building"],
   dream: "industrial_electrician"
 };
 
 export const state = {
-  jst: null, extraSkills: [], uncheckedSkills: [], answers: defaultAnswers(), answersDone: false, selected: null,
+  jst: null, location: null, extraSkills: [], uncheckedSkills: [], answers: defaultAnswers(), answersDone: false, selected: null,
   dream: null, compare: [], horizon: "earn"
 };
 

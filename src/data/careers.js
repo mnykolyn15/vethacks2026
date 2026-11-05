@@ -1,4 +1,4 @@
-// Curated demo set of ~25 roles. Pay is an ILLUSTRATIVE annual range for northern NJ;
+// Curated demo set of ~25 roles. Pay is an ILLUSTRATIVE annual range for New Jersey;
 // verify against BLS / O*NET before presenting as fact.
 // hours: "days" | "mixed" (some on-call/overtime) | "shifts" (nights/rotating)
 // commute: typical miles to the nearest employers.

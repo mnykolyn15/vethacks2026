@@ -32,7 +32,7 @@ const rules = [
 
 // Typical duties per MOS, used ONLY when the record has no duty lines (flagged as inferred in the UI).
 export const mosDuties = {
-  "52D": ["Troubleshoot and repair generators and power plants", "Perform preventive maintenance checks and services (PMCS)", "Maintain tool and equipment accountability"],
+  "91D": ["Troubleshoot and repair generators and power plants", "Perform preventive maintenance checks and services (PMCS)", "Maintain tool and equipment accountability"],
   "11B": ["Led teams through high-stakes operations", "Planned and briefed missions to stakeholders"],
   "68W": ["Provided emergency patient care and triage", "Maintained patient records and medical supplies"],
   "25B": ["Installed and maintained networks and computers", "Resolved user tickets and enforced information security"],
@@ -43,9 +43,10 @@ export const mosDuties = {
   "31B": ["Enforced regulations and responded to incidents", "Conducted investigations and wrote reports"],
   "42A": ["Managed personnel records and actions", "Advised staff on benefits and entitlements"]
 };
+mosDuties["52D"] = mosDuties["91D"]; // people may still have 52D on their records
 
 export const mosTitles = {
-  "52D": "Power Generation Equipment Repairer", "11B": "Infantryman", "68W": "Combat Medic Specialist",
+  "91D": "Power Generation Equipment Repairer", "52D": "Power Generation Equipment Repairer", "11B": "Infantryman", "68W": "Combat Medic Specialist",
   "25B": "Information Technology Specialist", "92Y": "Unit Supply Specialist", "88M": "Motor Transport Operator",
   "35F": "Intelligence Analyst", "12B": "Combat Engineer", "31B": "Military Police", "42A": "Human Resources Specialist"
 };
